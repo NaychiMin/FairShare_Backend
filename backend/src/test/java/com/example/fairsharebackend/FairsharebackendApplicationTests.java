@@ -8,7 +8,6 @@ class FairsharebackendApplicationTests {
 
 	@Test
 	void contextLoads() {
-		throw new RuntimeException("Breaking CI on purpose");
 	}
 
 }
