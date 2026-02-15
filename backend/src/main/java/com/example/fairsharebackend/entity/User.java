@@ -1,5 +1,6 @@
 package com.example.fairsharebackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -17,6 +18,7 @@ public class User {
     private String email;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @JsonIgnore
     private UserCredential userCredential;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -25,6 +27,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "static_role_id")
     )
+    @JsonIgnore
     private Set<StaticRole> staticRoles = new HashSet<>();
 
     public User() {

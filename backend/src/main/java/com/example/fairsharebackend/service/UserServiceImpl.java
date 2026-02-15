@@ -1,7 +1,82 @@
 package com.example.fairsharebackend.service;
 
+import com.example.fairsharebackend.entity.User;
+import com.example.fairsharebackend.entity.UserCredential;
+import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
+import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
+import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
+import com.example.fairsharebackend.repository.UserRepository;
+import com.example.fairsharebackend.security.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
+    private final UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(
+            UserRepository userRepository,
+            AuthenticationManager authenticationManager,
+            JwtUtil jwtUtil,
+            PasswordEncoder passwordEncoder
+    ) {
+        this.userRepository = userRepository;
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public User getUserByEmail(String email) {
+//        TODO - log here
+        return userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
+    }
+
+    @Override
+    @Transactional
+    public UserLoginResponseDto login(UserLoginRequestDto request) {
+        String email = request.getEmail();
+
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword()) // Spring security automatically checks raw password against hashed password
+            );
+        } catch (BadCredentialsException e) {
+            // TODO - log exception here
+            throw e;
+        }
+
+        UserLoginResponseDto res = new UserLoginResponseDto();
+        User user = this.getUserByEmail(email);
+        String jwt = jwtUtil.generateToken(user);
+        res.setUser(user);
+        res.setJwt(jwt);
+        return res;
+    }
+
+    @Override
+    @Transactional
+    public User registerUser(UserRegisterRequestDto dto) {
+        User user = new User();
+
+//        TODO additional validation logic here!
+
+        user.setEmail(dto.getEmail());
+
+        UserCredential cred = new UserCredential();
+        cred.setPasswordHash(passwordEncoder.encode(dto.getPassword())); // hash password
+        cred.setUser(user);
+
+        user.setUserCredential(cred);
+        return userRepository.save(user);
+    }
 }
