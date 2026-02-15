@@ -12,7 +12,7 @@
 	<artifactId>fairsharebackend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>fairsharebackend</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Backend service for FairShare</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<mysql.version>8.0.33</mysql.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -39,6 +40,12 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
@@ -46,7 +53,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
