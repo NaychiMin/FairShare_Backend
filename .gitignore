@@ -1,0 +1,12 @@
+
+# IDE files
+**/.idea/
+*.iml
+out/
+.project
+.classpath
+.settings/
+.vscode/
+
+# OS
+**/.DS_Store
