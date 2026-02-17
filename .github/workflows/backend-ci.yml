@@ -19,16 +19,6 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
         cache: 'maven'
-        
-    - name: Debug NVD Key
-      run: |
-        if [ -z "$NVD_API_KEY" ]; then
-          echo "NVD_API_KEY is EMPTY"
-        else
-          echo "NVD_API_KEY is SET"
-        fi
-      env:
-        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
     - name: Build and test backend
       run: |
