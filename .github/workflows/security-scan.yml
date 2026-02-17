@@ -3,6 +3,7 @@ name: Backend Security Scan
 on:
   push:
     branches: [ "main" ]
+  pull_request:
 
 jobs:
   security:
