@@ -4,6 +4,7 @@ import com.example.fairsharebackend.entity.User;
 import com.example.fairsharebackend.entity.UserCredential;
 import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
+import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
 import com.example.fairsharebackend.mapper.UserMapper;
 import com.example.fairsharebackend.repository.UserRepository;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -44,6 +47,7 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Override
     public User getUserByEmail(String email) {
         log.info("Finding User by email:: {}", email);
         return userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
@@ -101,8 +105,44 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    @Transactional
+    public User updateUser(UUID userId, UserUpdateRequestDto dto) {
+        log.info("Updating user details for userId :: {}", userId);
+
+        try {
+            this.validatedUpdateRequestDto(userId, dto);
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() ->
+                            new EntityNotFoundException("User not found with ID: " + userId)
+                    );
+
+            if (!dto.getEmail().isBlank() && !dto.getEmail().isEmpty()) {
+                String email = this.normaliseEmail(dto.getEmail());
+                dto.setEmail(email);
+            }
+
+            userMapper.updateFromDto(dto, user);
+            return userRepository.save(user);
+        } catch (BadCredentialsException | EntityNotFoundException e) {
+            log.error("Exception :: {}", e.getMessage());
+            throw e;
+
+        } catch (Exception e) {
+            log.error("Exception :: {}", e.getMessage());
+            throw new RuntimeException("Unable to update user at this time.");
+        }
+    }
+
     private void validatedRegisterRequestDto(UserRegisterRequestDto dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new BadCredentialsException("Email already in use.");
+        }
+    }
+
+    private void validatedUpdateRequestDto(UUID userId, UserUpdateRequestDto dto) {
+        if (userRepository.existsByEmailAndUserIdNot(dto.getEmail(), userId)) {
             throw new BadCredentialsException("Email already in use.");
         }
     }
