@@ -28,6 +28,7 @@ jobs:
 
     - name: SonarCloud Scan
       run: |
+        cd backend
         mvn verify sonar:sonar \
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
           -Dsonar.organization=${{ secrets.SONAR_ORG }} \
