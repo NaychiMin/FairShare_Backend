@@ -28,6 +28,11 @@ jobs:
       env:
         NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
+    - name: Debug NVD Key
+      run: echo "Key length: ${#NVD_API_KEY}"
+      env:
+        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
     - name: Upload OWASP Report
       uses: actions/upload-artifact@v4
       with:
