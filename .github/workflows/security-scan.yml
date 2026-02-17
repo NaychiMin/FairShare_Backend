@@ -1,0 +1,42 @@
+name: Backend Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 2 * * *'   # Runs daily at 2AM UTC
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'maven'
+
+    - name: Cache OWASP Data
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository/org/owasp/dependency-check-data
+        key: ${{ runner.os }}-owasp
+
+    - name: Run OWASP Dependency-Check
+      run: |
+        cd backend
+        chmod +x mvnw
+        ./mvnw org.owasp:dependency-check-maven:check
+      env:
+        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+    - name: Upload OWASP Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-check-report
+        path: backend/target/dependency-check-report.html
