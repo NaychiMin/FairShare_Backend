@@ -80,8 +80,8 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>9.1.0</version>
 				<configuration>
-					<nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
-					<nvdApiDelay>8000</nvdApiDelay>
+					<nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
+					<nvdApiDelay>10000</nvdApiDelay>
 				</configuration>
 				<executions>
 					<execution>
