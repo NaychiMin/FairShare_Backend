@@ -81,6 +81,7 @@
 				<version>9.1.0</version>
 				<configuration>
 					<nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+					<nvdApiDelay>8000</nvdApiDelay>
 				</configuration>
 				<executions>
 					<execution>
