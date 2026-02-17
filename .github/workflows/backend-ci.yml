@@ -25,3 +25,9 @@ jobs:
         cd backend
         chmod +x mvnw
         ./mvnw clean verify
+
+    - name: Upload OWASP Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-check-report
+        path: backend/target/dependency-check-report.html
