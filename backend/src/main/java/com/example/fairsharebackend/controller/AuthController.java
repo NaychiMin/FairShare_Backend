@@ -31,7 +31,6 @@ public class AuthController {
     public ResponseEntity<UserRegisterResponseDto> register(
             @RequestBody UserRegisterRequestDto requestDto
             ) {
-
         UserRegisterResponseDto res = new UserRegisterResponseDto();
         User user = this.userService.registerUser(requestDto);
         res.setUser(user);

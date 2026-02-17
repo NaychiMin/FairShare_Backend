@@ -44,23 +44,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserLoginResponseDto login(UserLoginRequestDto request) {
-        String email = request.getEmail();
-
         try {
+            String email = request.getEmail();
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, request.getPassword()) // Spring security automatically checks raw password against hashed password
             );
+            UserLoginResponseDto res = new UserLoginResponseDto();
+            User user = this.getUserByEmail(email);
+            String jwt = jwtUtil.generateToken(user);
+            res.setUser(user);
+            res.setJwt(jwt);
+            return res;
         } catch (BadCredentialsException e) {
-            // TODO - log exception here
-            throw e;
+            throw new BadCredentialsException("Invalid credentials.");
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to log in at this time. Please try again later.");
         }
-
-        UserLoginResponseDto res = new UserLoginResponseDto();
-        User user = this.getUserByEmail(email);
-        String jwt = jwtUtil.generateToken(user);
-        res.setUser(user);
-        res.setJwt(jwt);
-        return res;
     }
 
     @Override
