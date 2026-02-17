@@ -16,10 +16,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
@@ -41,13 +45,14 @@ public class UserServiceImpl implements UserService {
     }
 
     public User getUserByEmail(String email) {
-//        TODO - log here
+        log.info("Finding User by email:: {}", email);
         return userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
     }
 
     @Override
     @Transactional
     public UserLoginResponseDto login(UserLoginRequestDto request) {
+        log.error("Logging in with email :: {}", request.getEmail());
         try {
             String email = this.normaliseEmail(request.getEmail());
 
@@ -61,8 +66,10 @@ public class UserServiceImpl implements UserService {
             res.setJwt(jwt);
             return res;
         } catch (BadCredentialsException e) {
+            log.error("Exception :: {}", e.getMessage());
             throw new BadCredentialsException("Invalid credentials.");
         } catch (Exception e) {
+            log.error("Exception :: {}", e.getMessage());
             throw new RuntimeException("Unable to log in at this time. Please try again later.");
         }
     }
@@ -70,6 +77,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User registerUser(UserRegisterRequestDto dto) {
+        log.error("Registering with email :: {}", dto.getEmail());
         try {
             this.validatedRegisterRequestDto(dto);
             dto.setEmail(this.normaliseEmail(dto.getEmail()));
@@ -83,8 +91,12 @@ public class UserServiceImpl implements UserService {
             user.setUserCredential(cred);
             return userRepository.save(user);
         } catch (BadCredentialsException e) {
+            log.error("Exception :: {}", e.getMessage());
+
             throw e;
         } catch (Exception e) {
+            log.error("Exception :: {}", e.getMessage());
+
             throw new RuntimeException("Unable to register at this time. Please try again later.");
         }
     }
