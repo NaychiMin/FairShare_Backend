@@ -81,7 +81,8 @@
 				<version>12.1.1</version>
 				<configuration>
 					<nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
-					<nvdApiDelay>10000</nvdApiDelay>
+					<nvdApiDelay>4000</nvdApiDelay>
+					<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
 				</configuration>
 				<executions>
 					<execution>
