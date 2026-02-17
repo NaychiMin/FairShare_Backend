@@ -5,6 +5,7 @@ import com.example.fairsharebackend.entity.UserCredential;
 import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
+import com.example.fairsharebackend.mapper.UserMapper;
 import com.example.fairsharebackend.repository.UserRepository;
 import com.example.fairsharebackend.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,17 +21,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(
             UserRepository userRepository,
+            UserMapper userMapper,
             AuthenticationManager authenticationManager,
             JwtUtil jwtUtil,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
@@ -66,11 +70,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User registerUser(UserRegisterRequestDto dto) {
         try {
-            User user = new User();
 
     //        TODO additional validation logic here!
 
-            user.setEmail(dto.getEmail());
+            User user = this.userMapper.toEntity(dto);
 
             UserCredential cred = new UserCredential();
             cred.setPasswordHash(passwordEncoder.encode(dto.getPassword())); // hash password
