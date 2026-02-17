@@ -6,6 +6,7 @@ import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
 import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
 import com.example.fairsharebackend.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponseDto> register(
-            @RequestBody UserRegisterRequestDto requestDto
+            @Valid @RequestBody UserRegisterRequestDto requestDto
             ) {
         UserRegisterResponseDto res = new UserRegisterResponseDto();
         User user = this.userService.registerUser(requestDto);
@@ -39,7 +40,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<UserLoginResponseDto> register(
-            @RequestBody UserLoginRequestDto requestDto
+            @Valid @RequestBody UserLoginRequestDto requestDto
     ) {
         UserLoginResponseDto res = this.userService.login(requestDto);
         return ResponseEntity.ok(res);

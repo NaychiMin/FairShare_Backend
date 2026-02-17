@@ -49,7 +49,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserLoginResponseDto login(UserLoginRequestDto request) {
         try {
-            String email = request.getEmail();
+            String email = this.normaliseEmail(request.getEmail());
+
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, request.getPassword()) // Spring security automatically checks raw password against hashed password
             );
@@ -70,8 +71,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User registerUser(UserRegisterRequestDto dto) {
         try {
-
-    //        TODO additional validation logic here!
+            this.validatedRegisterRequestDto(dto);
+            dto.setEmail(this.normaliseEmail(dto.getEmail()));
 
             User user = this.userMapper.toEntity(dto);
 
@@ -81,8 +82,20 @@ public class UserServiceImpl implements UserService {
 
             user.setUserCredential(cred);
             return userRepository.save(user);
+        } catch (BadCredentialsException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Unable to register at this time. Please try again later.");
         }
+    }
+
+    private void validatedRegisterRequestDto(UserRegisterRequestDto dto) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new BadCredentialsException("Email already in use.");
+        }
+    }
+
+    private String normaliseEmail(String email) {
+        return email.trim().toLowerCase();
     }
 }
