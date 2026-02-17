@@ -65,17 +65,21 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User registerUser(UserRegisterRequestDto dto) {
-        User user = new User();
+        try {
+            User user = new User();
 
-//        TODO additional validation logic here!
+    //        TODO additional validation logic here!
 
-        user.setEmail(dto.getEmail());
+            user.setEmail(dto.getEmail());
 
-        UserCredential cred = new UserCredential();
-        cred.setPasswordHash(passwordEncoder.encode(dto.getPassword())); // hash password
-        cred.setUser(user);
+            UserCredential cred = new UserCredential();
+            cred.setPasswordHash(passwordEncoder.encode(dto.getPassword())); // hash password
+            cred.setUser(user);
 
-        user.setUserCredential(cred);
-        return userRepository.save(user);
+            user.setUserCredential(cred);
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to register at this time. Please try again later.");
+        }
     }
 }
