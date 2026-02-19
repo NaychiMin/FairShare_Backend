@@ -24,15 +24,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.m2/repository/org/owasp/dependency-check-data
-        key: ${{ runner.os }}-owasp
+        key: ${{ runner.os }}-owasp-${{ hashFiles('**/pom.xml') }}
 
     - name: Run OWASP Dependency-Check
       run: |
         cd backend
         chmod +x mvnw
-        ./mvnw org.owasp:dependency-check-maven:check
-      env:
-        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        ./mvnw org.owasp:dependency-check-maven:check \
+          -DnvdApiKey=${{ secrets.NVD_API_KEY }}
 
     - name: Upload OWASP Report
       uses: actions/upload-artifact@v4
@@ -44,8 +43,8 @@ jobs:
     - name: SonarCloud Scan
       run: |
         cd backend
-        mvn verify sonar:sonar \
-          -Dsonar.projectKey=fairshare-backend \ 
+        ./mvnw verify sonar:sonar \
+          -Dsonar.projectKey=fairshare-backend \
           -Dsonar.organization=fairshare-gcdmss \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
