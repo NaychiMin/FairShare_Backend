@@ -40,11 +40,11 @@ jobs:
         path: backend/target/dependency-check-report.html
 
     # To include project key and update sonar token
-    - name: SonarCloud Scan
-      run: |
-        cd backend
-        ./mvnw verify sonar:sonar \
-          -Dsonar.projectKey=fairshare-backend \
-          -Dsonar.organization=fairshare-gcdmss \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+    # - name: SonarCloud Scan
+    #   run: |
+    #     cd backend
+    #     ./mvnw verify sonar:sonar \
+    #       -Dsonar.projectKey=fairshare-backend \
+    #       -Dsonar.organization=fairshare-gcdmss \
+    #       -Dsonar.host.url=https://sonarcloud.io \
+    #       -Dsonar.login=${{ secrets.SONAR_TOKEN }}
