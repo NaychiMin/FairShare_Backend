@@ -39,6 +39,7 @@ jobs:
         name: dependency-check-report
         path: backend/target/dependency-check-report.html
 
+
     # To include project key and update sonar token
     # - name: SonarCloud Scan
     #   run: |
@@ -48,3 +49,5 @@ jobs:
     #       -Dsonar.organization=fairshare-gcdmss \
     #       -Dsonar.host.url=https://sonarcloud.io \
     #       -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    
