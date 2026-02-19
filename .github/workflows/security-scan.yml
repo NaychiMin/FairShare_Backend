@@ -1,0 +1,31 @@
+name: Backend Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'maven'
+
+    # To include project key and update sonar token
+    - name: SonarCloud Scan
+      run: |
+        cd backend
+        mvn verify sonar:sonar \
+          -Dsonar.projectKey=fairshare-backend \ 
+          -Dsonar.organization=fairshare-gcdmss \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
