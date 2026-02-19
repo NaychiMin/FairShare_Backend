@@ -28,3 +28,16 @@ jobs:
 
     - name: Build Docker Image
       run: docker build -t fairshare-backend ./backend
+
+    - name: Run Trivy and generate SARIF report
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: fairshare-backend
+        format: sarif
+        output: trivy-results.sarif
+        severity: CRITICAL,HIGH
+
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: trivy-results.sarif
