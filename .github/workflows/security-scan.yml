@@ -5,8 +5,12 @@ on:
     branches: [ "main" ]
   pull_request:
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
-  security:
+  owasp-scan:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +23,7 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
         cache: 'maven'
-
+  
     - name: Cache OWASP Data
       uses: actions/cache@v4
       with:
@@ -39,12 +43,27 @@ jobs:
         name: dependency-check-report
         path: backend/target/dependency-check-report.html
 
-    # To include project key and update sonar token
-    # - name: SonarCloud Scan
-    #   run: |
-    #     cd backend
-    #     ./mvnw verify sonar:sonar \
-    #       -Dsonar.projectKey=fairshare-backend \
-    #       -Dsonar.organization=fairshare-gcdmss \
-    #       -Dsonar.host.url=https://sonarcloud.io \
-    #       -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+  # sonar-scan:
+  #   needs: owasp-scan
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@v4
+
+  #   - name: Set up Java
+  #     uses: actions/setup-java@v4
+  #     with:
+  #       distribution: 'temurin'
+  #       java-version: '17'
+  #       cache: 'maven'
+
+  #   # To include project key and update sonar token
+  #   - name: SonarCloud Scan
+  #     run: |
+  #       cd backend
+  #       ./mvnw verify sonar:sonar \
+  #         -Dsonar.projectKey=fairshare-backend \
+  #         -Dsonar.organization=fairshare-gcdmss \
+  #         -Dsonar.host.url=https://sonarcloud.io \
+  #         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
