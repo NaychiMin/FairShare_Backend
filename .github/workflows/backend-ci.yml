@@ -45,7 +45,7 @@ jobs:
         name: backend-test-reports
         path: backend/target/surefire-reports/
 
-  docker-build:
+  trivy-scan:
     needs: build-test
     runs-on: ubuntu-latest
 
@@ -55,26 +55,6 @@ jobs:
 
     - name: Build Docker Image
       run: docker build -t fairshare-backend ./backend
-
-    - name: Upload Docker Image for other jobs
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-docker-image
-        path: ./backend
-
-  trivy-scan:
-    needs: docker-build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Download Docker Image
-      uses: actions/download-artifact@v4
-      with:
-        name: backend-docker-image
-        path: ./backend
 
     - name: Cache Trivy DB
       uses: actions/cache@v4
