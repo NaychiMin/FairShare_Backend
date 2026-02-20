@@ -15,7 +15,7 @@ public class Role {
     @Column(unique = true)
     private String name;
 
-    @Column(unique = true)
+    @Column
     private String scope;
 
     public Role() {

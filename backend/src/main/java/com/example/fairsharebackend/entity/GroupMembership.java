@@ -22,9 +22,9 @@ public class GroupMembership {
     @JoinColumn(name = "user_id", nullable = false) // Removed unique = true
     private User user;
 
-//    @ManyToOne
-//    @JoinColumn(name = "role_id") // Removed unique = true
-//    private Role role;
+    @ManyToOne
+    @JoinColumn(name = "role_id") // Removed unique = true
+    private Role role;
 
     @ManyToOne
     @JoinColumn(name = "group_id", nullable = false) // Removed unique = true
@@ -73,11 +73,11 @@ public class GroupMembership {
         this.group = group;
     }
 
-//    public Role getRole() {
-//        return role;
-//    }
-//
-//    public void setRole(Role role) {
-//        this.role = role;
-//    }
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 }
