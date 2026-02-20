@@ -29,16 +29,44 @@ jobs:
     - name: Build Docker Image
       run: docker build -t fairshare-backend ./backend
 
-    - name: Run Trivy and generate SARIF report
-      uses: aquasecurity/trivy-action@0.20.0
+    - name: Cache Trivy vulnerability database
+      uses: actions/cache@v4
       with:
-        image-ref: fairshare-backend
-        format: sarif
-        output: backend/trivy-results.sarif
-        severity: CRITICAL,HIGH
+        path: ~/.cache/trivy
+        key: ${{ runner.os }}-trivy-db
+        restore-keys: |
+          ${{ runner.os }}-trivy-db
 
-    - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
+    - name: Install Trivy
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install -y trivy
+
+    # # ---------------------------
+    # # (Optional) Fail on HIGH/CRITICAL
+    # # ---------------------------
+    # - name: Fail if HIGH/CRITICAL vulnerabilities found
+    #   run: |
+    #     trivy image \
+    #       --severity HIGH,CRITICAL \
+    #       --exit-code 1 \
+    #       fairshare-backend
+
+    - name: Generate Trivy HTML Report
+      run: |
+        trivy image \
+          --severity LOW,MEDIUM,HIGH,CRITICAL \
+          --format template \
+          --template "@contrib/html.tpl" \
+          -o trivy-report.html \
+          fairshare-backend
+
+    - name: Upload Trivy Report
+      uses: actions/upload-artifact@v4
       with:
-        sarif_file: backend/trivy-results.sarif
-        tool_name: Trivy
+        name: trivy-container-report
+        path: trivy-report.html
