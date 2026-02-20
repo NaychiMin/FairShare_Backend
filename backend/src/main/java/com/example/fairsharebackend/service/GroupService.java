@@ -8,8 +8,11 @@ import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface GroupService {
     Group createGroup(GroupCreateRequestDto group);
+    List<Group> getAllGroups(String email);
 }

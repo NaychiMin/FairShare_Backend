@@ -9,9 +9,12 @@ import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
 import com.example.fairsharebackend.service.GroupService;
 import com.example.fairsharebackend.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -29,6 +32,14 @@ public class GroupController {
             @Valid @RequestBody GroupCreateRequestDto requestDto
     ) {
         Group group = this.groupService.createGroup(requestDto);
-        return ResponseEntity.ok(group.getGroupName());
+        return new ResponseEntity<>(group.getGroupName(), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/all/{email}")
+    public ResponseEntity<List<Group>> getAllGroups(
+            @PathVariable String email
+    ) {
+        List<Group> groups = this.groupService.getAllGroups(email);
+        return new ResponseEntity<>(groups, HttpStatus.OK);
     }
 }

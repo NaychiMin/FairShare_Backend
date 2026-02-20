@@ -16,9 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional
@@ -74,5 +72,15 @@ public class GroupServiceImpl implements GroupService {
 
             throw new RuntimeException("Unable to register at this time. Please try again later.");
         }
+    }
+
+    public List<Group> getAllGroups(String email) {
+        User user = userRepository.findByEmail(email).get();
+        List<GroupMembership> groupMemberships = groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
+        List groups = new ArrayList();
+        for (GroupMembership membership : groupMemberships) {
+            groups.add(membership.getGroup());
+        }
+        return groups;
     }
 }
