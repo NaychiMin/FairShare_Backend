@@ -68,8 +68,7 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: fairshare-backend
-        format: template
-        template: "@html.tpl"
+        format: html
         output: trivy-report.html
         severity: LOW,MEDIUM,HIGH,CRITICAL
 
