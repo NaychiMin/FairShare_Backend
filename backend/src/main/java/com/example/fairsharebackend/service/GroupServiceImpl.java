@@ -2,6 +2,7 @@ package com.example.fairsharebackend.service;
 
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
+import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.mapper.GroupMapper;
 import com.example.fairsharebackend.mapper.UserMapper;
@@ -52,7 +53,11 @@ public class GroupServiceImpl implements GroupService {
         log.error("Create new group with name :: {}", dto.getGroupName());
         try {
             Group group = this.groupMapper.toEntity(dto);
-            User user = userRepository.getByName(dto.getAdmin());
+            //User user = userRepository.getByName(dto.getAdmin());
+
+            User user = userRepository.findByEmail(dto.getAdmin())
+                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+
             GroupMembership groupMembership = new GroupMembership();
             groupMembership.setGroup(group);
             groupMembership.setUser(user);
@@ -82,5 +87,34 @@ public class GroupServiceImpl implements GroupService {
             groups.add(membership.getGroup());
         }
         return groups;
+    }
+
+    @Override
+    public Group updateGroup(UUID groupId, GroupUpdateRequestDto dto, String requesterEmail) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+
+        log.info("requester id={}, email={}", requester.getUserId(), requester.getEmail());
+        log.info("group id={}", group.getGroupId());
+
+        boolean isAdmin = groupMembershipRepository
+                .existsByGroupAndUserAndRole_NameAndMembershipStatus(group, requester, "GROUP_ADMIN", "Active");
+
+        if (!isAdmin) {
+            throw new RuntimeException("Not authorized to edit this group");
+        }
+
+        // Uniqueness handling (only if name changed)
+        if (!group.getGroupName().equals(dto.getGroupName())
+                && groupRepository.existsByGroupName(dto.getGroupName())) {
+            throw new RuntimeException("Group name already exists");
+        }
+
+        group.setGroupName(dto.getGroupName());
+        group.setCategory(dto.getCategory());
+        return groupRepository.save(group);
     }
 }
