@@ -15,9 +15,14 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface GroupService {
+
     Group createGroup(GroupCreateRequestDto group);
-    //List<Group> getAllGroups(String email);
-    List<GroupSummaryResponseDto> getAllGroups(String email);
+    List<GroupSummaryResponseDto> getAllGroups(String email); // active groups
+
+    List<GroupSummaryResponseDto> getArchivedGroups(String email);      // archived
+    void archiveGroup(UUID groupId, String requesterEmail);
+    void unarchiveGroup(UUID groupId, String requesterEmail);
+
     Group updateGroup(UUID groupId, GroupUpdateRequestDto dto, String requesterEmail);
     void deleteGroup(UUID groupId, String requesterEmail);
 }

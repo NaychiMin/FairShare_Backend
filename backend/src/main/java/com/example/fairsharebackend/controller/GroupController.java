@@ -50,6 +50,33 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getAllGroups(email));
     }
 
+
+    @GetMapping("/archived/{email}")
+    public ResponseEntity<List<GroupSummaryResponseDto>> getArchived(@PathVariable String email) {
+        return ResponseEntity.ok(groupService.getArchivedGroups(email));
+    }
+
+    @PutMapping("/archive/{groupId}")
+    public ResponseEntity<String> archiveGroup(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail
+    ) {
+        groupService.archiveGroup(groupId, requesterEmail);
+        return ResponseEntity.ok("Group archived");
+    }
+
+    @PutMapping("/unarchive/{groupId}")
+    public ResponseEntity<String> unarchiveGroup(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail
+    ) {
+        groupService.unarchiveGroup(groupId, requesterEmail);
+        return ResponseEntity.ok("Group unarchived");
+    }
+
+
+
+
     // Edit group info (name + category)
     @PutMapping("/{groupId}")
     public ResponseEntity<String> updateGroup(

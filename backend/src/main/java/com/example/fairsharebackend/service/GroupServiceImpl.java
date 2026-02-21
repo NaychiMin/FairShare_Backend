@@ -32,6 +32,12 @@ public class GroupServiceImpl implements GroupService {
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
 
+
+    private static final String STATUS_ACTIVE = "Active";
+    private static final String STATUS_ARCHIVED = "Archived";
+    private static final String ROLE_GROUP_ADMIN = "GROUP_ADMIN";
+
+
     public GroupServiceImpl(
             GroupRepository groupRepository,
             GroupMapper groupMapper,
@@ -91,28 +97,113 @@ public class GroupServiceImpl implements GroupService {
 //    }
 
 
-    public List<GroupSummaryResponseDto> getAllGroups(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow();
+//    public List<GroupSummaryResponseDto> getAllGroups(String email) {
+//        User user = userRepository.findByEmail(email).orElseThrow();
+//
+//        List<GroupMembership> groupMemberships =
+//                groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
+//
+//        List<GroupSummaryResponseDto> result = new ArrayList<>();
+//
+//        for (GroupMembership membership : groupMemberships) {
+//            Group g = membership.getGroup();
+//            boolean isAdmin = membership.getRole() != null
+//                    && "GROUP_ADMIN".equals(membership.getRole().getName())
+//                    && "Active".equals(membership.getMembershipStatus());
+//
+//            result.add(new GroupSummaryResponseDto(
+//                    g.getGroupId(),
+//                    g.getGroupName(),
+//                    g.getCategory(),
+//                    isAdmin
+//            ));
+//        }
+//        return result;
+//    }
 
-        List<GroupMembership> groupMemberships =
+    @Override
+    public List<GroupSummaryResponseDto> getAllGroups(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<GroupMembership> memberships =
                 groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
 
         List<GroupSummaryResponseDto> result = new ArrayList<>();
+        for (GroupMembership m : memberships) {
+            Group g = m.getGroup();
+            if (!STATUS_ACTIVE.equals(g.getStatus())) continue;
 
-        for (GroupMembership membership : groupMemberships) {
-            Group g = membership.getGroup();
-            boolean isAdmin = membership.getRole() != null
-                    && "GROUP_ADMIN".equals(membership.getRole().getName())
-                    && "Active".equals(membership.getMembershipStatus());
+            boolean isAdmin = m.getRole() != null
+                    && ROLE_GROUP_ADMIN.equals(m.getRole().getName())
+                    && STATUS_ACTIVE.equals(m.getMembershipStatus());
 
             result.add(new GroupSummaryResponseDto(
-                    g.getGroupId(),
-                    g.getGroupName(),
-                    g.getCategory(),
-                    isAdmin
+                    g.getGroupId(), g.getGroupName(), g.getCategory(), isAdmin, g.getStatus()
             ));
         }
         return result;
+    }
+
+
+    @Override
+    public List<GroupSummaryResponseDto> getArchivedGroups(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<GroupMembership> memberships =
+                groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
+
+        List<GroupSummaryResponseDto> result = new ArrayList<>();
+        for (GroupMembership m : memberships) {
+            Group g = m.getGroup();
+            if (!STATUS_ARCHIVED.equals(g.getStatus())) continue;
+
+            boolean isAdmin = m.getRole() != null
+                    && ROLE_GROUP_ADMIN.equals(m.getRole().getName())
+                    && STATUS_ACTIVE.equals(m.getMembershipStatus());
+
+            result.add(new GroupSummaryResponseDto(
+                    g.getGroupId(), g.getGroupName(), g.getCategory(), isAdmin, g.getStatus()
+            ));
+        }
+        return result;
+    }
+
+    @Override
+    public void archiveGroup(UUID groupId, String requesterEmail) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        boolean isAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!isAdmin) {
+            throw new RuntimeException("Not authorized to archive this group");
+        }
+
+        group.setStatus(STATUS_ARCHIVED);
+        groupRepository.save(group);
+    }
+
+    @Override
+    public void unarchiveGroup(UUID groupId, String requesterEmail) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        boolean isAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!isAdmin) {
+            throw new RuntimeException("Not authorized to unarchive this group");
+        }
+
+        group.setStatus(STATUS_ACTIVE);
+        groupRepository.save(group);
     }
 
     @Override
