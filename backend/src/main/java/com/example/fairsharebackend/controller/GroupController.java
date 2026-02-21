@@ -3,7 +3,6 @@ package com.example.fairsharebackend.controller;
 import com.example.fairsharebackend.entity.Group;
 import com.example.fairsharebackend.entity.User;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
-import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
@@ -42,16 +41,5 @@ public class GroupController {
     ) {
         List<Group> groups = this.groupService.getAllGroups(email);
         return new ResponseEntity<>(groups, HttpStatus.OK);
-    }
-
-    // Edit group info (name + category)
-    @PutMapping("/{groupId}")
-    public ResponseEntity<String> updateGroup(
-            @PathVariable UUID groupId,
-            @Valid @RequestBody GroupUpdateRequestDto dto,
-            @RequestParam String requesterEmail
-    ) {
-        Group updated = groupService.updateGroup(groupId, dto, requesterEmail);
-        return ResponseEntity.ok(updated.getGroupName());
     }
 }
