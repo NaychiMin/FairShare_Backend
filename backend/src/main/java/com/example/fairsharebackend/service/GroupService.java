@@ -19,4 +19,5 @@ public interface GroupService {
     //List<Group> getAllGroups(String email);
     List<GroupSummaryResponseDto> getAllGroups(String email);
     Group updateGroup(UUID groupId, GroupUpdateRequestDto dto, String requesterEmail);
+    void deleteGroup(UUID groupId, String requesterEmail);
 }

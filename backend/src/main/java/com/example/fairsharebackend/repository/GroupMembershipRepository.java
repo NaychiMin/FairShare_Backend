@@ -17,4 +17,11 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
     boolean existsByGroupAndUserAndRole_NameAndMembershipStatus(
             Group group, User user, String roleName, String membershipStatus
     );
+    boolean existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+            UUID groupId,
+            String email,
+            String roleName,
+            String membershipStatus
+    );
+    void deleteByGroup_GroupId(UUID groupId);
 }

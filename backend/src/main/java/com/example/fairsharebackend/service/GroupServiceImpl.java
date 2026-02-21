@@ -143,4 +143,31 @@ public class GroupServiceImpl implements GroupService {
         group.setCategory(dto.getCategory());
         return groupRepository.save(group);
     }
+
+    @Override
+    public void deleteGroup(UUID groupId, String requesterEmail) {
+
+        // Ensure group exists
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        // Admin check (email-based)
+        boolean isAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId,
+                        requesterEmail,
+                        "GROUP_ADMIN",
+                        "Active"
+                );
+
+        if (!isAdmin) {
+            throw new RuntimeException("Not authorized to delete this group");
+        }
+
+        // Remove memberships first (safe for FK constraints)
+        groupMembershipRepository.deleteByGroup_GroupId(groupId);
+
+        // Delete the group
+        groupRepository.delete(group);
+    }
 }

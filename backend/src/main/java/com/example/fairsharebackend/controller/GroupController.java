@@ -60,4 +60,13 @@ public class GroupController {
         Group updated = groupService.updateGroup(groupId, dto, requesterEmail);
         return ResponseEntity.ok(updated.getGroupName());
     }
+
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<String> deleteGroup(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail
+    ) {
+        groupService.deleteGroup(groupId, requesterEmail);
+        return ResponseEntity.ok("Group deleted");
+    }
 }
