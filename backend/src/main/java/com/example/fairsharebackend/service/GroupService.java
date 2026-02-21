@@ -3,6 +3,8 @@ package com.example.fairsharebackend.service;
 import com.example.fairsharebackend.entity.Group;
 import com.example.fairsharebackend.entity.User;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
+import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
+import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto;
 import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
@@ -13,6 +15,14 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface GroupService {
+
     Group createGroup(GroupCreateRequestDto group);
-    List<Group> getAllGroups(String email);
+    List<GroupSummaryResponseDto> getAllGroups(String email); // active groups
+
+    List<GroupSummaryResponseDto> getArchivedGroups(String email);      // archived
+    void archiveGroup(UUID groupId, String requesterEmail);
+    void unarchiveGroup(UUID groupId, String requesterEmail);
+
+    Group updateGroup(UUID groupId, GroupUpdateRequestDto dto, String requesterEmail);
+    void deleteGroup(UUID groupId, String requesterEmail);
 }
