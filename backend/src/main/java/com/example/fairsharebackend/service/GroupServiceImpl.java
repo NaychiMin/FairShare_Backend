@@ -3,6 +3,7 @@ package com.example.fairsharebackend.service;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
+import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto; // new
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.mapper.GroupMapper;
 import com.example.fairsharebackend.mapper.UserMapper;
@@ -79,14 +80,39 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
-    public List<Group> getAllGroups(String email) {
-        User user = userRepository.findByEmail(email).get();
-        List<GroupMembership> groupMemberships = groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
-        List groups = new ArrayList();
+//    public List<Group> getAllGroups(String email) {
+//        User user = userRepository.findByEmail(email).get();
+//        List<GroupMembership> groupMemberships = groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
+//        List groups = new ArrayList();
+//        for (GroupMembership membership : groupMemberships) {
+//            groups.add(membership.getGroup());
+//        }
+//        return groups;
+//    }
+
+
+    public List<GroupSummaryResponseDto> getAllGroups(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+
+        List<GroupMembership> groupMemberships =
+                groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
+
+        List<GroupSummaryResponseDto> result = new ArrayList<>();
+
         for (GroupMembership membership : groupMemberships) {
-            groups.add(membership.getGroup());
+            Group g = membership.getGroup();
+            boolean isAdmin = membership.getRole() != null
+                    && "GROUP_ADMIN".equals(membership.getRole().getName())
+                    && "Active".equals(membership.getMembershipStatus());
+
+            result.add(new GroupSummaryResponseDto(
+                    g.getGroupId(),
+                    g.getGroupName(),
+                    g.getCategory(),
+                    isAdmin
+            ));
         }
-        return groups;
+        return result;
     }
 
     @Override

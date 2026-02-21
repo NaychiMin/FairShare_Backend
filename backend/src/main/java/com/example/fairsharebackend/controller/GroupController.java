@@ -4,6 +4,7 @@ import com.example.fairsharebackend.entity.Group;
 import com.example.fairsharebackend.entity.User;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
+import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
@@ -36,12 +37,17 @@ public class GroupController {
         return new ResponseEntity<>(group.getGroupName(), HttpStatus.CREATED);
     }
 
+//    @GetMapping("/all/{email}")
+//    public ResponseEntity<List<Group>> getAllGroups(
+//            @PathVariable String email
+//    ) {
+//        List<Group> groups = this.groupService.getAllGroups(email);
+//        return new ResponseEntity<>(groups, HttpStatus.OK);
+//    }
+
     @GetMapping("/all/{email}")
-    public ResponseEntity<List<Group>> getAllGroups(
-            @PathVariable String email
-    ) {
-        List<Group> groups = this.groupService.getAllGroups(email);
-        return new ResponseEntity<>(groups, HttpStatus.OK);
+    public ResponseEntity<List<GroupSummaryResponseDto>> getAll(@PathVariable String email) {
+        return ResponseEntity.ok(groupService.getAllGroups(email));
     }
 
     // Edit group info (name + category)
