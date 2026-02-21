@@ -44,4 +44,5 @@ public class Role {
     public void setScope(String scope) {
         this.scope = scope;
     }
+
 }
