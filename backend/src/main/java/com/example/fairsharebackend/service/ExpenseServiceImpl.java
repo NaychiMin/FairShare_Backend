@@ -200,9 +200,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             expense.setIsSettled(allSettled);
             expense.setUpdatedAt(LocalDateTime.now());
             expenseRepository.save(expense);
-            
-            // Optional: Log this event
-            System.out.println("Expense " + expense.getExpenseId() + " settlement status updated to: " + allSettled);
         }
     }
 }
