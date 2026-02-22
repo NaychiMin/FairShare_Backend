@@ -1,13 +1,13 @@
 package com.example.fairsharebackend.controller;
 
-import com.example.fairsharebackend.entity.Group;
-import com.example.fairsharebackend.entity.User;
+import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
+import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 import com.example.fairsharebackend.service.GroupService;
 import com.example.fairsharebackend.service.UserService;
 import jakarta.validation.Valid;
@@ -74,9 +74,6 @@ public class GroupController {
         return ResponseEntity.ok("Group unarchived");
     }
 
-
-
-
     // Edit group info (name + category)
     @PutMapping("/{groupId}")
     public ResponseEntity<String> updateGroup(
@@ -95,5 +92,25 @@ public class GroupController {
     ) {
         groupService.deleteGroup(groupId, requesterEmail);
         return ResponseEntity.ok("Group deleted");
+    }
+
+    // Method used in Group Details Page
+    @GetMapping("/{groupId}")
+    public ResponseEntity<Group> getGroupById(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail  
+    ) {
+        Group group = groupService.getGroupById(groupId, requesterEmail);
+        return ResponseEntity.ok(group);
+    }
+
+    // Method used in Group Details Page
+    @GetMapping("/{groupId}/members")
+    public ResponseEntity<List<UserSummaryResponseDto>> getGroupMembers(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail
+    ) {
+        List<UserSummaryResponseDto> members = groupService.getGroupMembers(groupId, requesterEmail);
+        return ResponseEntity.ok(members);
     }
 }

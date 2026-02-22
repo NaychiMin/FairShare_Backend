@@ -4,6 +4,8 @@ import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto; // new
+import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
+import com.example.fairsharebackend.exception.ResourceNotFoundException;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.mapper.GroupMapper;
 import com.example.fairsharebackend.mapper.UserMapper;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -260,5 +263,49 @@ public class GroupServiceImpl implements GroupService {
 
         // Delete the group
         groupRepository.delete(group);
+    }
+
+    @Override
+    public Group getGroupById(UUID groupId, String requesterEmail) {
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+        
+        boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, requester.getUserId());
+        if (!isMember) {
+            throw new RuntimeException("User is not a member of this group");
+        }
+        
+        return group;
+    }
+
+    @Override
+    public List<UserSummaryResponseDto> getGroupMembers(UUID groupId, String requesterEmail) {
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+        
+        boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, requester.getUserId());
+        if (!isMember) {
+            throw new RuntimeException("User is not a member of this group");
+        }
+        
+        List<GroupMembership> memberships = groupMembershipRepository.findByGroup(group);
+        
+        return memberships.stream()
+                .map(membership -> {
+                    User user = membership.getUser();
+                    UserSummaryResponseDto dto = new UserSummaryResponseDto();
+                    dto.setUserId(user.getUserId());
+                    dto.setName(user.getName());
+                    dto.setEmail(user.getEmail());
+                    dto.setRole(membership.getRole() != null ? membership.getRole().getName() : "MEMBER");
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }

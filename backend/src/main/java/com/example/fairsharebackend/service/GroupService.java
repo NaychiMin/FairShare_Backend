@@ -9,6 +9,7 @@ import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
+import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 
 import java.util.List;
 import java.util.Set;
@@ -25,4 +26,7 @@ public interface GroupService {
 
     Group updateGroup(UUID groupId, GroupUpdateRequestDto dto, String requesterEmail);
     void deleteGroup(UUID groupId, String requesterEmail);
+
+    List<UserSummaryResponseDto> getGroupMembers(UUID groupId, String requesterEmail);
+    Group getGroupById(UUID groupId, String requesterEmail);
 }
