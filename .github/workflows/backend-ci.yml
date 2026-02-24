@@ -108,7 +108,6 @@ jobs:
         docker run \
           -u $(id -u):$(id -g) \
           -v $GITHUB_WORKSPACE/zap-work:/zap/wrk \
-          -p 8080:8080 \
           ghcr.io/zaproxy/zaproxy:stable \
           zap-baseline.py \
           -t http://host.docker.internal:8080 \
