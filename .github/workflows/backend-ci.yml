@@ -75,8 +75,10 @@ jobs:
         template: "@html.tpl"
         output: trivy-report.html
         severity: LOW,MEDIUM,HIGH,CRITICAL
+        exit-code: "1"
 
     - name: Upload Trivy Report
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: trivy-container-report
