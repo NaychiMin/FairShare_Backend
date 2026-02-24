@@ -105,11 +105,13 @@ jobs:
     - name: Run OWASP ZAP Baseline Scan
       run: |
         mkdir -p $GITHUB_WORKSPACE/zap-work
-        docker run --network=host \
+        docker run \
+          -u $(id -u):$(id -g) \
           -v $GITHUB_WORKSPACE/zap-work:/zap/wrk \
+          -p 8080:8080 \
           ghcr.io/zaproxy/zaproxy:stable \
           zap-baseline.py \
-          -t http://localhost:8080 \
+          -t http://host.docker.internal:8080 \
           -r zap-report.html \
           -I
 
@@ -117,4 +119,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: zap-report
-        path: zap-work/zap-report.html
+        path: $GITHUB_WORKSPACE/zap-work/zap-report.html
