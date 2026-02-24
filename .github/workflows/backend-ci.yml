@@ -107,7 +107,7 @@ jobs:
     - name: Run OWASP ZAP Full Scan Action
       uses: zaproxy/action-full-scan@v0.13.0
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.ZAP_PAT_backend }}
         target: "http://host.docker.internal:8080"
         cmd_options: "-I -d"                 # -I = ignore failures, -d = debug logs
         fail_action: false                 # avoids failing workflow on alerts
