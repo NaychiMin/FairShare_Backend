@@ -107,12 +107,5 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         target: "http://host.docker.internal:8080"
-        rules_file_name: ".zap/rules.tsv"   # optional: custom rules
         cmd_options: "-I -d"                 # -I = ignore failures, -d = debug logs
         fail_action: false                 # avoids failing workflow on alerts
-
-    - name: Upload ZAP Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: zap-report
-        path: zap_reports/zap_report.html
