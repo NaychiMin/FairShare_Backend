@@ -23,7 +23,7 @@ public class GroupMembership {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "role_id") // Removed unique = true
+    @JoinColumn(name = "role_id", nullable = false) // Removed unique = true
     private Role role;
 
     @ManyToOne
