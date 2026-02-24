@@ -20,6 +20,7 @@ public class Role {
 
     public Role() {
     }
+    
 
     public UUID getRoleId() {
         return roleId;
