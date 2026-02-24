@@ -104,14 +104,18 @@ jobs:
 
     - name: Run OWASP ZAP Baseline Scan
       run: |
+        # Create a folder in the GitHub workspace for ZAP outputs
         mkdir -p $GITHUB_WORKSPACE/zap-work
+
+        # Run ZAP container with the workspace mounted
         docker run \
           -u $(id -u):$(id -g) \
           -v $GITHUB_WORKSPACE/zap-work:/zap/wrk \
           ghcr.io/zaproxy/zaproxy:stable \
-          zap-baseline.py \
+          zap-full-scan.py \
           -t http://host.docker.internal:8080 \
-          -r zap-report.html \
+          -r /zap/wrk/zap-report.html \
+          -J /zap/wrk/zap-report.json \
           -I
 
     - name: Upload ZAP Report
