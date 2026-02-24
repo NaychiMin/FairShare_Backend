@@ -113,7 +113,7 @@ jobs:
           -v $GITHUB_WORKSPACE/zap-work:/zap/wrk \
           ghcr.io/zaproxy/zaproxy:stable \
           zap-full-scan.py \
-          -t http://host.docker.internal:8080 \
+          -t http://172.17.0.1:8080 \
           -r /zap/wrk/zap-report.html \
           -J /zap/wrk/zap-report.json \
           -I
