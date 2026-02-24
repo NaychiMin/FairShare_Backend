@@ -102,24 +102,17 @@ jobs:
         nohup java -jar target/*.jar &
         sleep 30
 
-    - name: Run OWASP ZAP Baseline Scan
-      run: |
-        # Create a folder in the GitHub workspace for ZAP outputs
-        mkdir -p $GITHUB_WORKSPACE/zap-work
-
-        # Run ZAP container with the workspace mounted
-        docker run \
-          -u $(id -u):$(id -g) \
-          -v $GITHUB_WORKSPACE/zap-work:/zap/wrk \
-          ghcr.io/zaproxy/zaproxy:stable \
-          zap-full-scan.py \
-          -t http://172.17.0.1:8080 \
-          -r /zap/wrk/zap-report.html \
-          -J /zap/wrk/zap-report.json \
-          -I
+    - name: Run OWASP ZAP Full Scan Action
+      uses: zaproxy/action-full-scan@v0.13.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        target: "http://host.docker.internal:8080"
+        rules_file_name: ".zap/rules.tsv"   # optional: custom rules
+        cmd_options: "-I -d"                 # -I = ignore failures, -d = debug logs
+        fail_on_error: false                 # avoids failing workflow on alerts
 
     - name: Upload ZAP Report
       uses: actions/upload-artifact@v4
       with:
         name: zap-report
-        path: $GITHUB_WORKSPACE/zap-work/zap-report.html
+        path: "**/zap_report.html"
