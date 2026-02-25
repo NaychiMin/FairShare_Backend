@@ -101,7 +101,7 @@ jobs:
       with:
         token: ${{ secrets.ZAP_PAT_BACKEND }}
         target: "http://host.docker.internal:8080"
-        cmd_options: "-I -d"                 # -I = ignore failures, -d = debug logs
+        cmd_options: "-I -d -r zap-report.html"                 # -I = ignore failures, -d = debug logs
         fail_action: false                 # avoids failing workflow on alerts
         artifact_name: "zap-report"
 
