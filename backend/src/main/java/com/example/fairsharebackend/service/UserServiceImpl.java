@@ -4,6 +4,7 @@ import com.example.fairsharebackend.entity.User;
 import com.example.fairsharebackend.entity.UserCredential;
 import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
+import com.example.fairsharebackend.entity.dto.request.UserUpdatePasswordRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
 import com.example.fairsharebackend.mapper.UserMapper;
@@ -149,5 +150,46 @@ public class UserServiceImpl implements UserService {
 
     private String normaliseEmail(String email) {
         return email.trim().toLowerCase();
+    }
+
+    @Override
+    @Transactional
+    public void updatePassword(UUID userId, UserUpdatePasswordRequestDto dto) {
+        log.info("Updating password for userId :: {}", userId);
+
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() ->
+                            new EntityNotFoundException("User not found with ID: " + userId)
+                    );
+
+            UserCredential credential = user.getUserCredential();
+            if (credential == null) {
+                throw new RuntimeException("User cannot be validated at this time. Please try again later");
+            }
+
+            // Verify old password
+            boolean matches = passwordEncoder.matches(dto.getOldPassword(), credential.getPasswordHash());
+            if (!matches) {
+                throw new BadCredentialsException("Old password is incorrect.");
+            }
+
+            // Prevent same password reuse
+            if (passwordEncoder.matches(dto.getPassword(), credential.getPasswordHash())) {
+                throw new BadCredentialsException("New password cannot be the same as the old password.");
+            }
+
+            // Encode and update password
+            credential.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+
+            userRepository.save(user);
+
+        } catch (BadCredentialsException | EntityNotFoundException e) {
+            log.error("Exception :: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Exception :: {}", e.getMessage());
+            throw new RuntimeException("Unable to update password at this time.");
+        }
     }
 }
