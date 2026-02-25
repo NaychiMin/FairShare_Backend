@@ -103,3 +103,11 @@ jobs:
         target: "http://host.docker.internal:8080"
         cmd_options: "-I -d"                 # -I = ignore failures, -d = debug logs
         fail_action: false                 # avoids failing workflow on alerts
+        artifact_name: "zap-report"
+
+    - name: Upload ZAP Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-report
+        path: zap-report.html
