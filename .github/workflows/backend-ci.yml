@@ -60,17 +60,15 @@ jobs:
       uses: aquasecurity/trivy-action@0.24.0
       with:
         image-ref: fairshare-backend
-        format: html
-        output: trivy-report.html
+        format: sarif
+        output: trivy-results.sarif
         severity: HIGH,CRITICAL
         exit-code: "1"
 
-    - name: Upload Trivy Report
-      if: always()
-      uses: actions/upload-artifact@v4
+    - name: Upload SARIF to GitHub
+      uses: github/codeql-action/upload-sarif@v3
       with:
-        name: trivy-container-report
-        path: trivy-report.html
+        sarif_file: trivy-results.sarif
 
   zap-scan:
     needs: trivy-scan
