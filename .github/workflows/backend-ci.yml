@@ -61,13 +61,12 @@ jobs:
       with:
         image-ref: fairshare-backend
         format: table
-        output: trivy-results.sarif
+        output: trivy-results.log
         severity: HIGH,CRITICAL
         exit-code: "0"
 
-    - name: Save Trivy Scan Output
-      run: |
-        trivy image --format table --severity HIGH,CRITICAL fairshare-backend > trivy-results.log
+    - name: Show Trivy Table in Logs
+      run: cat trivy-results.log
 
     - name: Upload trivy log
       if: always()
