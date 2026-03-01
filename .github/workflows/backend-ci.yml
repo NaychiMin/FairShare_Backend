@@ -66,6 +66,7 @@ jobs:
         exit-code: "1"
 
     - name: Upload SARIF to GitHub
+      if: always()
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: trivy-results.sarif
