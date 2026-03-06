@@ -178,14 +178,16 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
-        boolean isAdmin = groupMembershipRepository
-                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
-                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
-                );
+        // boolean isAdmin = groupMembershipRepository
+        //         .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+        //                 groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+        //         );
 
-        if (!isAdmin) {
-            throw new RuntimeException("Not authorized to archive this group");
-        }
+        // if (!isAdmin) {
+        //     throw new RuntimeException("Not authorized to archive this group");
+        // }
+
+        validateGroupAdmin(groupId, requesterEmail);
 
         group.setStatus(STATUS_ARCHIVED);
         groupRepository.save(group);
@@ -196,14 +198,15 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
-        boolean isAdmin = groupMembershipRepository
-                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
-                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
-                );
+        // boolean isAdmin = groupMembershipRepository
+        //         .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+        //                 groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+        //         );
 
-        if (!isAdmin) {
-            throw new RuntimeException("Not authorized to unarchive this group");
-        }
+        // if (!isAdmin) {
+        //     throw new RuntimeException("Not authorized to unarchive this group");
+        // }
+        validateGroupAdmin(groupId, requesterEmail);
 
         group.setStatus(STATUS_ACTIVE);
         groupRepository.save(group);
@@ -220,12 +223,13 @@ public class GroupServiceImpl implements GroupService {
         log.info("requester id={}, email={}", requester.getUserId(), requester.getEmail());
         log.info("group id={}", group.getGroupId());
 
-        boolean isAdmin = groupMembershipRepository
-                .existsByGroupAndUserAndRole_NameAndMembershipStatus(group, requester, "GROUP_ADMIN", "Active");
+        // boolean isAdmin = groupMembershipRepository
+        //         .existsByGroupAndUserAndRole_NameAndMembershipStatus(group, requester, "GROUP_ADMIN", "Active");
 
-        if (!isAdmin) {
-            throw new RuntimeException("Not authorized to edit this group");
-        }
+        // if (!isAdmin) {
+        //     throw new RuntimeException("Not authorized to edit this group");
+        // }
+        validateGroupAdmin(groupId, requesterEmail);
 
         // Uniqueness handling (only if name changed)
         if (!group.getGroupName().equals(dto.getGroupName())
@@ -246,17 +250,18 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
         // Admin check (email-based)
-        boolean isAdmin = groupMembershipRepository
-                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
-                        groupId,
-                        requesterEmail,
-                        "GROUP_ADMIN",
-                        "Active"
-                );
+        // boolean isAdmin = groupMembershipRepository
+        //         .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+        //                 groupId,
+        //                 requesterEmail,
+        //                 "GROUP_ADMIN",
+        //                 "Active"
+        //         );
 
-        if (!isAdmin) {
-            throw new RuntimeException("Not authorized to delete this group");
-        }
+        // if (!isAdmin) {
+        //     throw new RuntimeException("Not authorized to delete this group");
+        // }
+        validateGroupAdmin(groupId, requesterEmail);
 
         // Remove memberships first (safe for FK constraints)
         groupMembershipRepository.deleteByGroup_GroupId(groupId);
@@ -308,4 +313,19 @@ public class GroupServiceImpl implements GroupService {
                 })
                 .collect(Collectors.toList());
     }
+
+    private void validateGroupAdmin(UUID groupId, String requesterEmail) {
+
+        boolean isAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId,
+                        requesterEmail,
+                        "GROUP_ADMIN",
+                        "Active"
+                );
+
+        if (!isAdmin) {
+                throw new RuntimeException("User is not authorized to perform this action");
+        }
+        }
 }
