@@ -6,7 +6,11 @@ import com.example.fairsharebackend.entity.dto.response.CreateInvitationResponse
 import com.example.fairsharebackend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.fairsharebackend.entity.dto.response.GroupInvitationDetailResponseDto;
+import com.example.fairsharebackend.entity.dto.response.GroupInvitationListItemResponseDto;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -137,5 +141,60 @@ public class GroupInvitationServiceImpl implements GroupInvitationService {
 
         invitation.setStatus(INVITE_ACCEPTED);
         groupInvitationRepository.save(invitation);
+    }
+
+
+    @Override
+    public GroupInvitationDetailResponseDto getInvitationByToken(String token) {
+        GroupInvitation invitation = groupInvitationRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invitation not found"));
+
+        return new GroupInvitationDetailResponseDto(
+                invitation.getToken(),
+                invitation.getGroup().getGroupName(),
+                invitation.getGroup().getCategory(),
+                invitation.getInvitedEmail(),
+                invitation.getStatus(),
+                invitation.getExpiresAt().toString(),
+                invitation.getCreatedAt().toString(),
+                invitation.getCreatedBy().getEmail()
+        );
+    }
+
+    @Override
+    public List<GroupInvitationListItemResponseDto> getPendingInvitations(String email) {
+        List<GroupInvitation> invitations = groupInvitationRepository
+                .findAllByInvitedEmailAndStatusOrderByCreatedAtDesc(email, INVITE_PENDING);
+
+        return invitations.stream()
+                .map(invitation -> new GroupInvitationListItemResponseDto(
+                        invitation.getToken(),
+                        invitation.getGroup().getGroupName(),
+                        invitation.getGroup().getCategory(),
+                        invitation.getInvitedEmail(),
+                        invitation.getStatus(),
+                        invitation.getExpiresAt().toString()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GroupInvitationListItemResponseDto> getSentInvitations(String requesterEmail) {
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new RuntimeException("Requester not found"));
+
+        List<GroupInvitation> invitations = groupInvitationRepository
+                .findAllByCreatedByOrderByCreatedAtDesc(requester);
+
+        return invitations.stream()
+                .map(invitation -> new GroupInvitationListItemResponseDto(
+                        invitation.getToken(),
+                        invitation.getGroup().getGroupName(),
+                        invitation.getGroup().getCategory(),
+                        invitation.getInvitedEmail(),
+                        invitation.getStatus(),
+                        invitation.getExpiresAt().toString()
+                ))
+                .collect(Collectors.toList());
     }
 }
