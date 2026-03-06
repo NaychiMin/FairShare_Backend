@@ -1,6 +1,7 @@
 package com.example.fairsharebackend.service;
 
 import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
+import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.exception.ResourceNotFoundException;
 import com.example.fairsharebackend.repository.GroupMembershipRepository;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class GroupServiceTest {
@@ -200,5 +202,103 @@ class GroupServiceTest {
         // ASSERT
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getRole()).isEqualTo("MEMBER"); 
+    }
+
+    @Test
+    @DisplayName("Regular member cannot update a group")
+    void memberCannotUpdateGroup() {
+        // ARRANGE
+        lenient().when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        lenient().when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+
+        // Simulate member is NOT admin
+        lenient().when(groupMembershipRepository.existsByGroupAndUserAndRole_NameAndMembershipStatus(
+                group, user, "GROUP_ADMIN", "Active")).thenReturn(false);
+
+        GroupUpdateRequestDto dto = new GroupUpdateRequestDto();
+        dto.setGroupName("New Name");
+        dto.setCategory("New Category");
+
+        // ACT & ASSERT
+        assertThatThrownBy(() -> groupService.updateGroup(groupId, dto, requesterEmail))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User is not authorized to perform this action");
+    }
+
+    @Test
+    @DisplayName("Regular member cannot delete a group")
+    void memberCannotDeleteGroup() {
+        lenient().when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        lenient().when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+
+        when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                groupId, requesterEmail, "GROUP_ADMIN", "Active")).thenReturn(false);
+
+        assertThatThrownBy(() -> groupService.deleteGroup(groupId, requesterEmail))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User is not authorized to perform this action");
+    }
+
+    @Test
+    @DisplayName("Regular member cannot archive a group")
+    void memberCannotArchiveGroup() {
+        lenient().when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        lenient().when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+
+        when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                groupId, requesterEmail, "GROUP_ADMIN", "Active")).thenReturn(false);
+
+        assertThatThrownBy(() -> groupService.archiveGroup(groupId, requesterEmail))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User is not authorized to perform this action");
+    }
+
+    @Test
+    @DisplayName("Regular member cannot unarchive a group")
+    void memberCannotUnarchiveGroup() {
+        lenient().when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        lenient().when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+
+        when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                groupId, requesterEmail, "GROUP_ADMIN", "Active")).thenReturn(false);
+
+        assertThatThrownBy(() -> groupService.unarchiveGroup(groupId, requesterEmail))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("User is not authorized to perform this action");
+    }
+
+    @Test
+    @DisplayName("Regular member can get group by ID")
+    void memberCanGetGroupById() {
+        when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(groupMembershipRepository.existsByGroupAndUser_UserId(group, user.getUserId())).thenReturn(true);
+
+        Group result = groupService.getGroupById(groupId, requesterEmail);
+
+        assertThat(result).isEqualTo(group);
+    }
+
+    @Test
+    @DisplayName("Regular member can get group members")
+    void memberCanGetGroupMembers() {
+        User member1 = new User();
+        member1.setUserId(UUID.randomUUID());
+        member1.setName("Member 1");
+        member1.setEmail("member1@example.com");
+
+        GroupMembership membership1 = new GroupMembership();
+        membership1.setUser(member1);
+        membership1.setRole(memberRole);  // GROUP_MEMBER
+
+        when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(groupMembershipRepository.existsByGroupAndUser_UserId(group, user.getUserId())).thenReturn(true);
+        when(groupMembershipRepository.findByGroup(group)).thenReturn(List.of(membership1));
+
+        List<UserSummaryResponseDto> members = groupService.getGroupMembers(groupId, requesterEmail);
+
+        assertThat(members).hasSize(1);
+        assertThat(members.get(0).getRole()).isEqualTo("MEMBER");
     }
 }
