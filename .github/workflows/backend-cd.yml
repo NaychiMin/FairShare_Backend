@@ -44,4 +44,4 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           cd backend
-          railway up --service backend
+          railway up --service Fairshare_Backend
