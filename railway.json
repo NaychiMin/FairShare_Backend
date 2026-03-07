@@ -1,5 +1,9 @@
 {
   "build": {
-    "builder": "maven"
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "cd backend && java -jar target/*.jar"
   }
 }
+
