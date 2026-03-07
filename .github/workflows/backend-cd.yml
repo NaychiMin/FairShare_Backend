@@ -18,21 +18,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Log in to GitHub Container Registry
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # # 2. Log in to GitHub Container Registry (Optional)
+      # - name: Log in to GHCR
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3. Build & tag Docker image
-      - name: Build & Push Docker Image
-        run: |
-          IMAGE_NAME=ghcr.io/naychimin/fairshare_backend:staging
-          echo "Building $IMAGE_NAME"
-          docker build -t $IMAGE_NAME ./backend
-          docker push $IMAGE_NAME
+      # # 3. Build & tag Docker image (Optional)
+      # - name: Build & Push Docker Image
+      #   run: |
+      #     IMAGE_NAME=ghcr.io/naychimin/fairshare_backend:staging
+      #     echo "Building $IMAGE_NAME"
+      #     docker build -t $IMAGE_NAME ./backend
+      #     docker push $IMAGE_NAME
 
       # 4. Install Railway CLI
       - name: Install Railway CLI
