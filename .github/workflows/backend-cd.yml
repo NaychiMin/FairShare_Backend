@@ -43,4 +43,5 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway up --service backend --image ghcr.io/naychimin/fairshare_backend:staging
+          cd backend
+          railway up --service backend
