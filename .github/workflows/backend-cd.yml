@@ -43,6 +43,8 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          cd backend          echo "Listing projects:" 
+          cd backend
+          echo "Listing projects:"
           railway projects || true
-          echo "Attempting deployment..."          railway up --service FairShare_Backend
+          echo "Attempting deployment..."
+          railway up --service FairShare_Backend
