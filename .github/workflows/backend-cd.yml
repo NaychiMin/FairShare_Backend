@@ -34,14 +34,10 @@ jobs:
       #     docker build -t $IMAGE_NAME ./backend
       #     docker push $IMAGE_NAME
 
-      # 4. Install Railway CLI
-      - name: Install Railway CLI
-        run: curl -sL https://railway.app/install.sh | sh
-
-      # 5. Deploy to Railway staging
+      # 4. Deploy to Railway using official action
       - name: Deploy to Railway Staging
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          cd backend
-          railway up --service FairShare_Backend
+        uses: railwayapp/deploy-action@v1
+        with:
+          token: ${{ secrets.RAILWAY_TOKEN }}
+          service: FairShare_Backend
+          project: Fairshare_Backend
