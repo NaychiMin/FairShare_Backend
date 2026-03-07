@@ -46,5 +46,8 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           export PATH="$HOME/.railway/bin:$PATH"
+          echo "Token length: ${#RAILWAY_TOKEN}"
+          echo "Railway version:"
+          railway --version
           cd backend
           railway up --service FairShare_Backend
