@@ -12,11 +12,19 @@ jobs:
   # ---------- CD: Deploy to Staging ----------
   deploy-staging:
     runs-on: ubuntu-latest
-
+    
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      SVC_ID: ${{ secrets.RAILWAY_SERVICEID }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
-      # 1. Checkout repo
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+      - run: railway up --service=${{ env.SVC_ID }}
+
+    # steps:
+    #   # 1. Checkout repo
+    #   - name: Checkout repository
+    #     uses: actions/checkout@v4
 
       # # 2. Log in to GitHub Container Registry (Optional)
       # - name: Log in to GHCR
@@ -34,17 +42,14 @@ jobs:
       #     docker build -t $IMAGE_NAME ./backend
       #     docker push $IMAGE_NAME
 
-      # 4. Install Railway CLI
-      - name: Install Railway CLI
-        run: curl -sL https://railway.app/install.sh | sh
+      # # 4. Install Railway CLI
+      # - name: Install Railway CLI
+      #   run: curl -sL https://railway.app/install.sh | sh
 
-      # 5. Deploy to Railway staging
-      - name: Deploy to Railway Staging
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          cd backend
-          echo "Listing projects:"
-          railway projects || true
-          echo "Attempting deployment..."
-          railway up --service FairShare_Backend
+      # # 5. Deploy to Railway staging
+      # - name: Deploy to Railway Staging
+      #   env:
+      #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      #   run: |
+      #     cd backend
+      #     railway up --service FairShare_Backend
