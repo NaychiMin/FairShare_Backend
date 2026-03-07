@@ -3,7 +3,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd backend && java -jar target/*.jar"
+    "startCommand": "java -jar target/*.jar"
   }
 }
-
