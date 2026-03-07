@@ -42,7 +42,6 @@ jobs:
       - name: Deploy to Railway Staging
         env:
           RAILWAY_API_KEY: ${{ secrets.RAILWAY_API_KEY }}
-          # DB_URL: ${{ secrets.DB_URL }}
         run: |
-          railway login --ci
-          railway up --service backend --image ghcr.io/${{ github.repository }}/backend:staging
+          railway login --apiKey $RAILWAY_API_KEY
+          railway up --service backend --image ghcr.io/naychimin/fairshare_backend:staging
