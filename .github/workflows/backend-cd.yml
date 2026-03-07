@@ -36,18 +36,12 @@ jobs:
 
       # 4. Install Railway CLI
       - name: Install Railway CLI
-        run: |
-          curl -sL https://railway.app/install.sh | bash
-          export PATH="$HOME/.railway/bin:$PATH"
+        run: curl -sL https://railway.app/install.sh | sh
 
       # 5. Deploy to Railway staging
       - name: Deploy to Railway Staging
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          export PATH="$HOME/.railway/bin:$PATH"
-          echo "Token length: ${#RAILWAY_TOKEN}"
-          echo "Railway version:"
-          railway --version
           cd backend
           railway up --service FairShare_Backend
