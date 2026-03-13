@@ -6,6 +6,9 @@ import com.example.fairsharebackend.exception.ResourceNotFoundException;
 import com.example.fairsharebackend.repository.GroupMembershipRepository;
 import com.example.fairsharebackend.repository.GroupRepository;
 import com.example.fairsharebackend.repository.UserRepository;
+import com.example.fairsharebackend.repository.RoleRepository;
+import com.example.fairsharebackend.mapper.GroupMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,13 +20,28 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+
+import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+
 @ExtendWith(MockitoExtension.class)
 class GroupServiceTest {
+
+    @Mock
+    private GroupMapper groupMapper;
+
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private GroupRepository groupRepository;
@@ -200,5 +218,131 @@ class GroupServiceTest {
         // ASSERT
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getRole()).isEqualTo("MEMBER"); 
+    }
+
+
+    @Test
+    @DisplayName("Archive group successfully when requester is admin")
+    void shouldArchiveGroupSuccessfully() {
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                groupId, requesterEmail, "GROUP_ADMIN", "Active"
+        )).thenReturn(true);
+
+        groupService.archiveGroup(groupId, requesterEmail);
+
+        assertThat(group.getStatus()).isEqualTo("Archived");
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    @DisplayName("Fail to archive group when requester is not admin")
+    void shouldFailArchiveGroupWhenNotAdmin() {
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                groupId, requesterEmail, "GROUP_ADMIN", "Active"
+        )).thenReturn(false);
+
+        assertThatThrownBy(() -> groupService.archiveGroup(groupId, requesterEmail))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Not authorized");
+
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Update group successfully when requester is admin and name is unique")
+    void shouldUpdateGroupSuccessfully() {
+        GroupUpdateRequestDto dto = new GroupUpdateRequestDto();
+        dto.setGroupName("Updated Group");
+        dto.setCategory("Travel");
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        when(groupMembershipRepository.existsByGroupAndUserAndRole_NameAndMembershipStatus(
+                group, user, "GROUP_ADMIN", "Active"
+        )).thenReturn(true);
+        when(groupRepository.existsByGroupName("Updated Group")).thenReturn(false);
+        when(groupRepository.save(group)).thenReturn(group);
+
+        Group result = groupService.updateGroup(groupId, dto, requesterEmail);
+
+        assertThat(result.getGroupName()).isEqualTo("Updated Group");
+        assertThat(result.getCategory()).isEqualTo("Travel");
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    @DisplayName("Fail to update group when new group name already exists")
+    void shouldFailUpdateGroupWhenNameExists() {
+        GroupUpdateRequestDto dto = new GroupUpdateRequestDto();
+        dto.setGroupName("Existing Group");
+        dto.setCategory("Travel");
+
+        group.setGroupName("Old Group");
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findByEmail(requesterEmail)).thenReturn(Optional.of(user));
+        when(groupMembershipRepository.existsByGroupAndUserAndRole_NameAndMembershipStatus(
+                group, user, "GROUP_ADMIN", "Active"
+        )).thenReturn(true);
+        when(groupRepository.existsByGroupName("Existing Group")).thenReturn(true);
+
+        assertThatThrownBy(() -> groupService.updateGroup(groupId, dto, requesterEmail))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Group name already exists");
+
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Assign admin successfully")
+    void shouldAssignAdminSuccessfully() {
+        UUID targetUserId = UUID.randomUUID();
+
+        GroupMembership targetMembership = new GroupMembership();
+        targetMembership.setUser(new User());
+        targetMembership.setRole(memberRole);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                groupId, requesterEmail, "GROUP_ADMIN", "Active"
+        )).thenReturn(true);
+        when(groupMembershipRepository.findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(
+                groupId, targetUserId, "Active"
+        )).thenReturn(Optional.of(targetMembership));
+        when(roleRepository.getByName("GROUP_ADMIN")).thenReturn(adminRole);
+
+        groupService.assignAdmin(groupId, targetUserId, requesterEmail);
+
+        assertThat(targetMembership.getRole()).isEqualTo(adminRole);
+        verify(groupMembershipRepository).save(targetMembership);
+    }
+
+
+    @Test
+    @DisplayName("Fail to revoke admin when target is the last admin")
+    void shouldFailRevokeLastAdmin() {
+        UUID targetUserId = UUID.randomUUID();
+
+        GroupMembership targetMembership = new GroupMembership();
+        targetMembership.setRole(adminRole);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                groupId, requesterEmail, "GROUP_ADMIN", "Active"
+        )).thenReturn(true);
+        when(groupMembershipRepository.findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(
+                groupId, targetUserId, "Active"
+        )).thenReturn(Optional.of(targetMembership));
+        when(groupMembershipRepository.countByGroup_GroupIdAndRole_NameAndMembershipStatus(
+                groupId, "GROUP_ADMIN", "Active"
+        )).thenReturn(1L);
+
+        assertThatThrownBy(() -> groupService.revokeAdmin(groupId, targetUserId, requesterEmail))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("last group admin");
+
+        verify(groupMembershipRepository, never()).save(any());
     }
 }
