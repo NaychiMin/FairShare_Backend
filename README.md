@@ -37,6 +37,18 @@ Run the following in order, from the root folder
 
 This just runs spring-boot:run but specifies that the profile is 'dev'. This makes sure that the build is using application-dev.properties
 
+
+## Note for US_013 to US_017
+
+Run the following SQL script prior to using code from these user stories:
+
+   ```
+   INSERT INTO tb_role (role_id, name, scope)
+   VALUES 
+   (1, 'GROUP_ADMIN', 'GROUP'),
+   (2, 'GROUP_MEMBER', 'GROUP');
+   ```
+
 ## Contribution
 
 1. Create PR's to main only
