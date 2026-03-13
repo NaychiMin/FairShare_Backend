@@ -5,8 +5,13 @@ on:
     branches: [ "main" ]
   pull_request:
 
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,3 +30,83 @@ jobs:
         cd backend
         chmod +x mvnw
         ./mvnw clean verify
+
+    - name: Upload Test Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-test-reports
+        path: backend/target/surefire-reports/
+
+  trivy-scan:
+    needs: build-test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build Docker Image
+      run: docker build -t fairshare-backend ./backend
+
+    - name: Cache Trivy DB
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/trivy
+        key: ${{ runner.os }}-trivy-db
+        restore-keys: |
+          ${{ runner.os }}-trivy-db
+
+    - name: Run Trivy Image Scan
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: fairshare-backend
+        format: table
+        output: trivy-results.log
+        severity: HIGH,CRITICAL
+        exit-code: "0"
+
+    - name: Show Trivy Table in Logs
+      run: cat trivy-results.log
+
+    - name: Upload trivy log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: trivy-container-report
+        path: trivy-results.log
+
+  zap-scan:
+    needs: trivy-scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build backend
+      run: |
+        cd backend
+        chmod +x mvnw
+        ./mvnw clean package -DskipTests
+
+    - name: Start backend
+      run: |
+        cd backend
+        nohup java -jar target/*.jar &
+        sleep 30
+
+    - name: Run OWASP ZAP Full Scan Action
+      uses: zaproxy/action-full-scan@v0.13.0
+      with:
+        token: ${{ secrets.ZAP_PAT_BACKEND }}
+        target: "http://host.docker.internal:8080"
+        cmd_options: "-I -d -r zap-scan.html"                 # -I = ignore failures, -d = debug logs
+        fail_action: false                 # avoids failing workflow on alerts
+        artifact_name: "zap-scan"
+
+    - name: Upload ZAP Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-scan
+        path: zap-scan.html
