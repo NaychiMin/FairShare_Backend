@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Repository
 public interface GroupMembershipRepository extends JpaRepository<GroupMembership, UUID> {
-    List<GroupMembership> findAllByUserOrderByJoinedAtDesc(User user);
+
     boolean existsByGroupAndUserAndRole_NameAndMembershipStatus(
             Group group, User user, String roleName, String membershipStatus
     );
@@ -32,4 +32,28 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
             String email,
             String membershipStatus
     );
+
+    Optional<GroupMembership> findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(
+            UUID groupId,
+            UUID userId,
+            String membershipStatus
+    );
+
+    List<GroupMembership> findAllByUserOrderByJoinedAtDesc(User user);
+
+    List<GroupMembership> findAllByGroup_GroupIdOrderByJoinedAtAsc(UUID groupId);
+
+    long countByGroup_GroupIdAndRole_NameAndMembershipStatus(
+            UUID groupId,
+            String roleName,
+            String membershipStatus
+    );
+
+
+
+
 }
+
+
+
+

@@ -37,14 +37,6 @@ public class GroupController {
         return new ResponseEntity<>(group.getGroupName(), HttpStatus.CREATED);
     }
 
-//    @GetMapping("/all/{email}")
-//    public ResponseEntity<List<Group>> getAllGroups(
-//            @PathVariable String email
-//    ) {
-//        List<Group> groups = this.groupService.getAllGroups(email);
-//        return new ResponseEntity<>(groups, HttpStatus.OK);
-//    }
-
     @GetMapping("/all/{email}")
     public ResponseEntity<List<GroupSummaryResponseDto>> getAll(@PathVariable String email) {
         return ResponseEntity.ok(groupService.getAllGroups(email));
@@ -112,5 +104,25 @@ public class GroupController {
     ) {
         List<UserSummaryResponseDto> members = groupService.getGroupMembers(groupId, requesterEmail);
         return ResponseEntity.ok(members);
+    }
+
+    @PutMapping("/{groupId}/members/{userId}/assign-admin")
+    public ResponseEntity<String> assignAdmin(
+            @PathVariable UUID groupId,
+            @PathVariable UUID userId,
+            @RequestParam String requesterEmail
+    ) {
+        groupService.assignAdmin(groupId, userId, requesterEmail);
+        return ResponseEntity.ok("Admin privileges assigned");
+    }
+
+    @PutMapping("/{groupId}/members/{userId}/revoke-admin")
+    public ResponseEntity<String> revokeAdmin(
+            @PathVariable UUID groupId,
+            @PathVariable UUID userId,
+            @RequestParam String requesterEmail
+    ) {
+        groupService.revokeAdmin(groupId, userId, requesterEmail);
+        return ResponseEntity.ok("Admin privileges revoked");
     }
 }

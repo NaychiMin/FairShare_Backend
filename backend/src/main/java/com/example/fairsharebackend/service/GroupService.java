@@ -29,4 +29,9 @@ public interface GroupService {
 
     List<UserSummaryResponseDto> getGroupMembers(UUID groupId, String requesterEmail);
     Group getGroupById(UUID groupId, String requesterEmail);
+
+    void assignAdmin(UUID groupId, UUID userId, String requesterEmail);
+    void revokeAdmin(UUID groupId, UUID userId, String requesterEmail);
+
+
 }

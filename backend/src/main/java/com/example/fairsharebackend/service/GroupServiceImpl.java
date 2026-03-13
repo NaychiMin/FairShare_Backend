@@ -38,7 +38,8 @@ public class GroupServiceImpl implements GroupService {
 
     private static final String STATUS_ACTIVE = "Active";
     private static final String STATUS_ARCHIVED = "Archived";
-    private static final String ROLE_GROUP_ADMIN = "GROUP_ADMIN";
+    private static final String ROLE_GROUP_ADMIN = "GROUP_ADMIN";;
+    private static final String ROLE_GROUP_MEMBER = "GROUP_MEMBER";
 
 
     public GroupServiceImpl(
@@ -88,41 +89,6 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException("Unable to register at this time. Please try again later.");
         }
     }
-
-//    public List<Group> getAllGroups(String email) {
-//        User user = userRepository.findByEmail(email).get();
-//        List<GroupMembership> groupMemberships = groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
-//        List groups = new ArrayList();
-//        for (GroupMembership membership : groupMemberships) {
-//            groups.add(membership.getGroup());
-//        }
-//        return groups;
-//    }
-
-
-//    public List<GroupSummaryResponseDto> getAllGroups(String email) {
-//        User user = userRepository.findByEmail(email).orElseThrow();
-//
-//        List<GroupMembership> groupMemberships =
-//                groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
-//
-//        List<GroupSummaryResponseDto> result = new ArrayList<>();
-//
-//        for (GroupMembership membership : groupMemberships) {
-//            Group g = membership.getGroup();
-//            boolean isAdmin = membership.getRole() != null
-//                    && "GROUP_ADMIN".equals(membership.getRole().getName())
-//                    && "Active".equals(membership.getMembershipStatus());
-//
-//            result.add(new GroupSummaryResponseDto(
-//                    g.getGroupId(),
-//                    g.getGroupName(),
-//                    g.getCategory(),
-//                    isAdmin
-//            ));
-//        }
-//        return result;
-//    }
 
     @Override
     public List<GroupSummaryResponseDto> getAllGroups(String email) {
@@ -308,4 +274,81 @@ public class GroupServiceImpl implements GroupService {
                 })
                 .collect(Collectors.toList());
     }
+
+
+
+    @Override
+    public void assignAdmin(UUID groupId, UUID userId, String requesterEmail) {
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        boolean requesterIsAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!requesterIsAdmin) {
+            throw new RuntimeException("Not authorized to assign admin privileges");
+        }
+
+        GroupMembership targetMembership = groupMembershipRepository
+                .findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(groupId, userId, STATUS_ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Member not found in this group"));
+
+        if (targetMembership.getRole() != null
+                && ROLE_GROUP_ADMIN.equals(targetMembership.getRole().getName())) {
+            throw new RuntimeException("User is already a group admin");
+        }
+
+        Role adminRole = roleRepository.getByName(ROLE_GROUP_ADMIN);
+        if (adminRole == null) {
+            throw new RuntimeException("Missing role: GROUP_ADMIN");
+        }
+
+        targetMembership.setRole(adminRole);
+        groupMembershipRepository.save(targetMembership);
+    }
+
+    @Override
+    public void revokeAdmin(UUID groupId, UUID userId, String requesterEmail) {
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        boolean requesterIsAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!requesterIsAdmin) {
+            throw new RuntimeException("Not authorized to revoke admin privileges");
+        }
+
+        GroupMembership targetMembership = groupMembershipRepository
+                .findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(groupId, userId, STATUS_ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Member not found in this group"));
+
+        if (targetMembership.getRole() == null
+                || !ROLE_GROUP_ADMIN.equals(targetMembership.getRole().getName())) {
+            throw new RuntimeException("User is not a group admin");
+        }
+
+        long adminCount = groupMembershipRepository
+                .countByGroup_GroupIdAndRole_NameAndMembershipStatus(
+                        groupId, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (adminCount <= 1) {
+            throw new RuntimeException("Cannot revoke the last group admin");
+        }
+
+        Role memberRole = roleRepository.getByName(ROLE_GROUP_MEMBER);
+        if (memberRole == null) {
+            throw new RuntimeException("Missing role: GROUP_MEMBER");
+        }
+
+        targetMembership.setRole(memberRole);
+        groupMembershipRepository.save(targetMembership);
+    }
+
+
 }
