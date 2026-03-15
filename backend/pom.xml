@@ -30,6 +30,7 @@
 		<java.version>17</java.version>
 		<mysql.version>8.0.33</mysql.version>
 		<org.mapstruct.version>1.6.3</org.mapstruct.version>
+		<sonar.organization>fairshare-gcdmss</sonar.organization>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -138,6 +139,21 @@
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>12.1.1</version>
+				<configuration>
+					<nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
+					<nvdApiDelay>4000</nvdApiDelay>
+					<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+				</configuration>
+				<executions>
+					<execution>
+					<goals>
+						<goal>check</goal>
+					</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
