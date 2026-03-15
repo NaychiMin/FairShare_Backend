@@ -10,6 +10,7 @@ import com.example.fairsharebackend.mapper.UserMapper;
 import com.example.fairsharebackend.repository.UserRepository;
 import com.example.fairsharebackend.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,6 +78,7 @@ class UserServiceImplTest {
 
     @Test
     void testLogin_Success() {
+        HttpServletResponse servletRes = mock(HttpServletResponse.class);
         UserLoginRequestDto request = new UserLoginRequestDto();
         request.setEmail("test@example.com");
         request.setPassword("password");
@@ -89,7 +91,7 @@ class UserServiceImplTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(jwtUtil.generateToken(user)).thenReturn("jwt-token");
 
-        UserLoginResponseDto response = userService.login(request);
+        UserLoginResponseDto response = userService.login(request, servletRes);
 
         assertNotNull(response);
         assertEquals(user, response.getUser());
@@ -98,6 +100,7 @@ class UserServiceImplTest {
 
     @Test
     void testLogin_BadCredentials() {
+        HttpServletResponse servletRes = mock(HttpServletResponse.class);
         UserLoginRequestDto request = new UserLoginRequestDto();
         request.setEmail("test@example.com");
         request.setPassword("wrong");
@@ -105,7 +108,7 @@ class UserServiceImplTest {
         when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Bad creds"));
 
         BadCredentialsException ex = assertThrows(BadCredentialsException.class,
-                () -> userService.login(request));
+                () -> userService.login(request, servletRes));
 
         assertEquals("Invalid credentials.", ex.getMessage());
     }

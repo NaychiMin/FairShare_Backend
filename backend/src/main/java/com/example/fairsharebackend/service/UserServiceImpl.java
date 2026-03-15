@@ -6,11 +6,14 @@ import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdatePasswordRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
+import com.example.fairsharebackend.entity.dto.response.UserDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
 import com.example.fairsharebackend.mapper.UserMapper;
 import com.example.fairsharebackend.repository.UserRepository;
 import com.example.fairsharebackend.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,9 +21,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.ResponseCookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -56,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserLoginResponseDto login(UserLoginRequestDto request) {
+    public UserLoginResponseDto login(UserLoginRequestDto request, HttpServletResponse response) {
         log.error("Logging in with email :: {}", request.getEmail());
         try {
             String email = this.normaliseEmail(request.getEmail());
@@ -67,6 +73,17 @@ public class UserServiceImpl implements UserService {
             UserLoginResponseDto res = new UserLoginResponseDto();
             User user = this.getUserByEmail(email);
             String jwt = jwtUtil.generateToken(user);
+
+            ResponseCookie cookie = ResponseCookie.from("accessToken", jwt)
+                    .httpOnly(true)      // JS cannot access it
+                    .secure(false)       // IMPORTANT for localhost
+                    .path("/")
+                    .sameSite("Lax")
+                    .maxAge(Duration.ofMinutes(15))
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
             res.setUser(user);
             res.setJwt(jwt);
             return res;
@@ -191,5 +208,37 @@ public class UserServiceImpl implements UserService {
             log.error("Exception :: {}", e.getMessage());
             throw new RuntimeException("Unable to update password at this time.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public UserDto getCurrentUser(String token) {
+        if (jwtUtil.isTokenExpired(token)) {
+            throw new BadCredentialsException("Token expired. Please log in again.");
+        }
+
+        String userIdStr = jwtUtil.extractUserId(token);
+        UUID userId;
+        try {
+            System.out.println("UserID " + userIdStr);
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            throw new BadCredentialsException("Invalid token");
+        }
+
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new BadCredentialsException("User not found. Please log in again");
+        }
+
+        User user = userOpt.get();
+
+        // Map to DTO
+        UserDto dto = new UserDto();
+        dto.setUserId(user.getUserId());
+        dto.setEmail(user.getEmail());
+        dto.setName(user.getName());
+        dto.setStatus(user.getStatus());
+
+        return dto;
     }
 }
