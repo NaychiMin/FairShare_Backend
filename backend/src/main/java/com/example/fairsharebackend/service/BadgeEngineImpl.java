@@ -17,14 +17,17 @@ import java.util.List;
 public class BadgeEngineImpl implements BadgeEngine {
     private static final Logger log = LoggerFactory.getLogger(BadgeEngineImpl.class);
     private final BadgeEvaluatorRegistry badgeEvaluatorRegistry;
+    private final BadgeNotificationService badgeNotificationService;
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
     public BadgeEngineImpl(
             BadgeEvaluatorRegistry badgeEvaluatorRegistry,
+            BadgeNotificationService badgeNotificationService,
             BadgeRepository badgeRepository,
             UserBadgeRepository userBadgeRepository
     ) {
         this.badgeEvaluatorRegistry = badgeEvaluatorRegistry;
+        this.badgeNotificationService = badgeNotificationService;
         this.badgeRepository = badgeRepository;
         this.userBadgeRepository = userBadgeRepository;
     }
@@ -75,6 +78,7 @@ public class BadgeEngineImpl implements BadgeEngine {
         userBadge.setCreatedAt(LocalDateTime.now());
         userBadge.setUpdatedAt(null);
 
+        this.badgeNotificationService.notifyBadgeEarned(user.getUserId(), userBadge);
         userBadgeRepository.save(userBadge);
     }
 }
