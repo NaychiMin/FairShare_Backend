@@ -30,6 +30,8 @@ public class BadgeEngineImpl implements BadgeEngine {
     }
 
     public void evaluate(Settlement settlement) {
+        log.info("Start evaluating Settlement :: {} ", settlement.getSettlementId());
+
         List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.SETTLEMENT);
 
         BadgeEvaluationContext context = new BadgeEvaluationContext();
@@ -37,6 +39,7 @@ public class BadgeEngineImpl implements BadgeEngine {
         context.setSettlement(settlement);
 
         for (Badge b : applicableBadges) {
+            log.info("For Badge :: {}", b.getName());
             BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
 
             if (evaluator.qualifies(settlement.getFromUser(), b, context)) {
@@ -46,18 +49,15 @@ public class BadgeEngineImpl implements BadgeEngine {
     }
 
     public void evaluate(Expense expense) {
-        log.info("Start evaluating expense :: {} ", expense.getDescription());
+        log.info("Start evaluating Expense :: {} ", expense.getExpenseId());
         List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.EXPENSE);
-
-        log.info("Size of applicableBadges :: {} ", applicableBadges.size());
 
         BadgeEvaluationContext context = new BadgeEvaluationContext();
         context.setGroup(expense.getGroup());
         context.setExpense(expense);
 
         for (Badge b : applicableBadges) {
-            log.info("Badge :: {}", b.getName());
-
+            log.info("For Badge :: {}", b.getName());
             BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
 
             if (evaluator.qualifies(expense.getPaidBy(), b, context)) {
