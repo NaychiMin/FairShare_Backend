@@ -29,6 +29,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final SplitStrategyFactory strategyFactory;
     private final ExpenseMapper expenseMapper;
     private final BalanceService balanceService;
+    private final BadgeEngine badgeEngine;
 
     public ExpenseServiceImpl(
             ExpenseRepository expenseRepository,
@@ -39,7 +40,8 @@ public class ExpenseServiceImpl implements ExpenseService {
             GroupActivityRepository groupActivityRepository,
             SplitStrategyFactory strategyFactory,
             ExpenseMapper expenseMapper,
-            BalanceService balanceService) {
+            BalanceService balanceService,
+            BadgeEngine badgeEngine) {
         this.expenseRepository = expenseRepository;
         this.expenseSplitRepository = expenseSplitRepository;
         this.groupRepository = groupRepository;
@@ -49,6 +51,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         this.strategyFactory = strategyFactory;
         this.expenseMapper = expenseMapper;
         this.balanceService = balanceService;
+        this.badgeEngine = badgeEngine;
     }
 
     @Override
@@ -122,6 +125,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         updateExpenseSettlementStatus(savedExpense);
 
         logActivity(group, creator, savedExpense);
+        badgeEngine.evaluate(savedExpense);
 
         return expenseMapper.toExpenseResponseDto(savedExpense);
     }

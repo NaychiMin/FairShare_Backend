@@ -6,6 +6,8 @@ import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.repository.BadgeRepository;
 import com.example.fairsharebackend.repository.UserBadgeRepository;
 import com.example.fairsharebackend.util.BadgeEvaluatorRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,6 +15,7 @@ import java.util.List;
 
 @Service
 public class BadgeEngineImpl implements BadgeEngine {
+    private static final Logger log = LoggerFactory.getLogger(BadgeEngineImpl.class);
     private final BadgeEvaluatorRegistry badgeEvaluatorRegistry;
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
@@ -43,13 +46,18 @@ public class BadgeEngineImpl implements BadgeEngine {
     }
 
     public void evaluate(Expense expense) {
+        log.info("Start evaluating expense :: {} ", expense.getDescription());
         List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.EXPENSE);
+
+        log.info("Size of applicableBadges :: {} ", applicableBadges.size());
 
         BadgeEvaluationContext context = new BadgeEvaluationContext();
         context.setGroup(expense.getGroup());
         context.setExpense(expense);
 
         for (Badge b : applicableBadges) {
+            log.info("Badge :: {}", b.getName());
+
             BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
 
             if (evaluator.qualifies(expense.getPaidBy(), b, context)) {
@@ -59,6 +67,7 @@ public class BadgeEngineImpl implements BadgeEngine {
     }
 
     private void awardBadge(User user, Badge badge, Group group) {
+        log.info("Awarding Badge {} to User {}", badge.getName(), user.getName());
         UserBadge userBadge = new UserBadge();
         userBadge.setUser(user);
         userBadge.setBadge(badge);

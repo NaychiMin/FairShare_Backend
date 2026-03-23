@@ -13,7 +13,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "tb_badge")
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Badge {
+public class Badge {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID badgeId;
