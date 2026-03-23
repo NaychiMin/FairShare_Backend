@@ -1,9 +1,15 @@
 package com.example.fairsharebackend.service;
 
+import com.example.fairsharebackend.constant.BadgeRuleType;
+import com.example.fairsharebackend.constant.BadgeType;
+import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.repository.BadgeRepository;
 import com.example.fairsharebackend.repository.UserBadgeRepository;
 import com.example.fairsharebackend.util.BadgeEvaluatorRegistry;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class BadgeEngineImpl implements BadgeEngine {
@@ -18,5 +24,48 @@ public class BadgeEngineImpl implements BadgeEngine {
         this.badgeEvaluatorRegistry = badgeEvaluatorRegistry;
         this.badgeRepository = badgeRepository;
         this.userBadgeRepository = userBadgeRepository;
+    }
+
+    public void evaluate(Settlement settlement) {
+        List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.SETTLEMENT);
+
+        BadgeEvaluationContext context = new BadgeEvaluationContext();
+        context.setGroup(settlement.getGroup());
+        context.setSettlement(settlement);
+
+        for (Badge b : applicableBadges) {
+            BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
+
+            if (evaluator.qualifies(settlement.getFromUser(), b, context)) {
+                this.awardBadge(settlement.getFromUser(), b, settlement.getGroup());
+            }
+        }
+    }
+
+    public void evaluate(Expense expense) {
+        List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.EXPENSE);
+
+        BadgeEvaluationContext context = new BadgeEvaluationContext();
+        context.setGroup(expense.getGroup());
+        context.setExpense(expense);
+
+        for (Badge b : applicableBadges) {
+            BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
+
+            if (evaluator.qualifies(expense.getPaidBy(), b, context)) {
+                this.awardBadge(expense.getPaidBy(), b, expense.getGroup());
+            }
+        }
+    }
+
+    private void awardBadge(User user, Badge badge, Group group) {
+        UserBadge userBadge = new UserBadge();
+        userBadge.setUser(user);
+        userBadge.setBadge(badge);
+        userBadge.setGroup(group); // Will be null for PERSONAL scope badges
+        userBadge.setCreatedAt(LocalDateTime.now());
+        userBadge.setUpdatedAt(null);
+
+        userBadgeRepository.save(userBadge);
     }
 }

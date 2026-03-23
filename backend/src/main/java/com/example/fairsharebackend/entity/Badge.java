@@ -32,6 +32,9 @@ public abstract class Badge {
     @Column(nullable = false)
     private BadgeRuleType badgeRuleType;
 
+    @Column(nullable = false)
+    private BadgeType badgeType;
+
     @Column
     private String ruleConfig;
 
@@ -84,5 +87,13 @@ public abstract class Badge {
 
     public void setRuleConfig(String ruleConfig) {
         this.ruleConfig = ruleConfig;
+    }
+
+    public BadgeType getBadgeType() {
+        return badgeType;
+    }
+
+    public void setBadgeType(BadgeType badgeType) {
+        this.badgeType = badgeType;
     }
 }
