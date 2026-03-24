@@ -1,7 +1,6 @@
 package com.example.fairsharebackend.entity;
 
 import com.example.fairsharebackend.constant.BadgeType;
-import com.example.fairsharebackend.constant.EventType;
 
 import java.util.Map;
 

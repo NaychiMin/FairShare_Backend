@@ -4,7 +4,7 @@ import com.example.fairsharebackend.constant.BadgeRuleType;
 import com.example.fairsharebackend.constant.BadgeScope;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.exception.EvaluatorException;
-import com.example.fairsharebackend.repository.ExpenseRepository;
+import com.example.fairsharebackend.repository.SettlementRepository;
 import com.example.fairsharebackend.repository.UserBadgeRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,23 +14,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExpenseCountBadgeEvaluatorImpl implements BadgeEvaluator {
-    private final String COUNT_KEY = "count";
-    private static final Logger log = LoggerFactory.getLogger(ExpenseCountBadgeEvaluatorImpl.class);
-    private final ExpenseRepository expenseRepository;
+public class SettlementTimingBadgeEvaluatorImpl implements BadgeEvaluator {
+    private final String TIMING_KEY = "timing";
+    private static final Logger log = LoggerFactory.getLogger(SettlementTimingBadgeEvaluatorImpl.class);
+    private final SettlementRepository settlementRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    public ExpenseCountBadgeEvaluatorImpl(
-            ExpenseRepository expenseRepository,
+    public SettlementTimingBadgeEvaluatorImpl(
+            SettlementRepository settlementRepository,
             UserBadgeRepository userBadgeRepository
     ) {
-        this.expenseRepository = expenseRepository;
+        this.settlementRepository = settlementRepository;
         this.userBadgeRepository = userBadgeRepository;
     }
 
     @Override
     public BadgeRuleType supports() {
-        return BadgeRuleType.EXPENSE_COUNT;
+        return BadgeRuleType.SETTLEMENT_TIMING;
     }
 
     @Override
@@ -42,32 +42,32 @@ public class ExpenseCountBadgeEvaluatorImpl implements BadgeEvaluator {
             return false;
         }
 
-        Expense expense = context.getExpense();
+        Settlement settlement = context.getSettlement();
         boolean alreadyEarned = hasUserEarnedBadge(
-                expense.getCreatedBy(),
+                settlement.getFromUser(),
                 badge,
-                badge.getBadgeScope() == BadgeScope.GROUP ? expense.getGroup() : null
+                badge.getBadgeScope() == BadgeScope.GROUP ? settlement.getGroup() : null
         );
 
         if (alreadyEarned) {
-            log.info("User {} has alread earned Badge {}", expense.getCreatedBy().getName(), badge.getName());
+            log.info("User {} has alread earned Badge {}", user.getName(), badge.getName());
             return false;
         }
 
         Group group = context.getGroup();
-        Integer count = this.getBadgeCount(badge.getRuleConfig());
+        Integer timing = this.getBadgeTiming(badge.getRuleConfig());
 
-        long currentLong = this.expenseRepository.countByGroupAndCreatedBy(group, expense.getCreatedBy());
+        long currentLong = this.settlementRepository.countByGroupAndFromUser(group, user);
 
-        return currentLong >= count;
+        return false;
     }
 
     private void validateContext(BadgeEvaluationContext context) {
         if (context.getGroup() == null) {
             throw new EvaluatorException("Missing group");
         }
-        if (context.getExpense() == null) {
-            throw new EvaluatorException("Missing expense");
+        if (context.getSettlement() == null) {
+            throw new EvaluatorException("Missing settlement");
         }
     }
 
@@ -77,11 +77,11 @@ public class ExpenseCountBadgeEvaluatorImpl implements BadgeEvaluator {
         }
     }
 
-    private Integer getBadgeCount(String ruleConfig) {
+    private Integer getBadgeTiming(String ruleConfig) {
         try {
             JsonNode config = objectMapper.readTree(ruleConfig);
-            return config.has("count") ?
-                    config.get("count").asInt() : 0;
+            return config.has(TIMING_KEY) ?
+                    config.get(TIMING_KEY).asInt() : 0;
         } catch (JsonProcessingException e) {
             throw new EvaluatorException(e.getMessage());
         }

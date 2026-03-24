@@ -5,5 +5,7 @@ public enum BadgeRuleType {
     SETTLEMENT_COUNT,
 
     // Expense
-    EXPENSE_COUNT
+    EXPENSE_COUNT,
+    // Settlement
+    SETTLEMENT_TIMING,
 }

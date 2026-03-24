@@ -12,6 +12,6 @@ import java.util.UUID;
 public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     List<Expense> findByGroup(Group group);
     List<Expense> findByGroup_GroupIdOrderByExpenseDateDesc(UUID groupId);
-    long countByGroupAndPaidBy(Group group, User paidBy);
+    long countByGroupAndCreatedBy(Group group, User createdBy);
 
 }
