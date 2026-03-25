@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user_badge")
+@Table(name = "tb_user_badge")
 public class UserBadge {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -17,7 +17,7 @@ public class UserBadge {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "badger_id")
+    @JoinColumn(name = "badge_id")
     private Badge badge;
 
     private LocalDateTime createdAt;
