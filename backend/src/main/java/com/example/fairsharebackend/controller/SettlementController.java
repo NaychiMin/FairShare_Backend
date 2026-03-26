@@ -53,4 +53,14 @@ public class SettlementController {
             settlementService.getAllGroupSettlements(groupId, requesterEmail);
         return ResponseEntity.ok(settlements);
     }
+
+    // Retrieve a single settlement
+    @GetMapping("/{settlementId}")
+    public ResponseEntity<SettlementResponseDto> getSettlementById(
+            @PathVariable UUID settlementId,
+            @RequestParam String requesterEmail) {
+        
+        SettlementResponseDto settlement = settlementService.getSettlementById(settlementId, requesterEmail);
+        return ResponseEntity.ok(settlement);
+    }
 }
