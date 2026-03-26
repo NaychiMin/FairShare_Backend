@@ -54,7 +54,7 @@ public class SettlementController {
         return ResponseEntity.ok(settlements);
     }
 
-    // Retrieve a single settlement
+    // Retrieve a single settlement by ID
     @GetMapping("/{settlementId}")
     public ResponseEntity<SettlementResponseDto> getSettlementById(
             @PathVariable UUID settlementId,
@@ -62,5 +62,15 @@ public class SettlementController {
         
         SettlementResponseDto settlement = settlementService.getSettlementById(settlementId, requesterEmail);
         return ResponseEntity.ok(settlement);
+    }
+
+    // Delete settlement by ID
+    @DeleteMapping("/{settlementId}")
+    public ResponseEntity<Void> deleteSettlement(
+            @PathVariable UUID settlementId,
+            @RequestParam String requesterEmail) {
+        
+        settlementService.deleteSettlement(settlementId, requesterEmail);
+        return ResponseEntity.noContent().build();
     }
 }
