@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import java.util.List;
 
 @RestController
@@ -20,25 +21,13 @@ public class UserBadgeController {
         this.userBadgeService = userBadgeService;
     }
 
-    @GetMapping
+    @GetMapping("/{email}")
     public ResponseEntity<List<UserBadgeResponseDto>> getMyBadges(
-            @AuthenticationPrincipal UserDetails userDetails
+            @PathVariable String email
     ) {
-        String email = userDetails.getUsername();
-
         List<UserBadgeResponseDto> badges =
                 userBadgeService.getUserBadges(email);
 
         return ResponseEntity.ok(badges);
     }
-
-    // @GetMapping
-    // public ResponseEntity<List<UserBadgeResponseDto>> getMyBadges(){
-    //     String email = "mary@gmail.com";
-
-    //     List<UserBadgeResponseDto> badges =
-    //             userBadgeService.getUserBadges(email);
-
-    //     return ResponseEntity.ok(badges);
-    // }
 }

@@ -33,16 +33,37 @@ public class UserBadgeServiceImpl implements UserBadgeService {
                      .toList();
     }
 
+    // private UserBadgeResponseDto mapToDto(UserBadge ub) {
+    //     UserBadgeResponseDto dto = new UserBadgeResponseDto();
+    //     dto.setBadgeName(ub.getBadge().getName());
+    //     dto.setDescription(ub.getBadge().getDescription());
+    //     dto.setBadgeType(ub.getBadge().getBadgeType().name());
+    //     dto.setBadgeScope(ub.getBadge().getBadgeScope().name());
+    //     dto.setEarnedAt(ub.getCreatedAt());
+    //     if (ub.getGroup() != null) {
+    //         dto.setGroupName(ub.getGroup().getGroupName());
+    //     }
+    //     return dto;
+    // }
+
     private UserBadgeResponseDto mapToDto(UserBadge ub) {
         UserBadgeResponseDto dto = new UserBadgeResponseDto();
-        dto.setBadgeName(ub.getBadge().getName());
-        dto.setDescription(ub.getBadge().getDescription());
-        dto.setBadgeType(ub.getBadge().getBadgeType().name());
-        dto.setBadgeScope(ub.getBadge().getBadgeScope().name());
+
+        if (ub.getBadge() != null) {
+            dto.setBadgeName(ub.getBadge().getName());
+            dto.setDescription(ub.getBadge().getDescription());
+            dto.setBadgeType(ub.getBadge().getBadgeType().name());
+            dto.setBadgeScope(ub.getBadge().getBadgeScope().name());
+        } else {
+            dto.setBadgeName("Unknown Badge");
+        }
+
         dto.setEarnedAt(ub.getCreatedAt());
+
         if (ub.getGroup() != null) {
             dto.setGroupName(ub.getGroup().getGroupName());
         }
+
         return dto;
     }
 }
