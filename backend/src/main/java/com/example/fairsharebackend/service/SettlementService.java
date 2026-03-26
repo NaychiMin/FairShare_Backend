@@ -150,4 +150,20 @@ public class SettlementService {
                 .map(settlementMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
+
+    // Get a single settlement by ID
+    public SettlementResponseDto getSettlementById(UUID settlementId, String requesterEmail) {
+        
+        User user = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        Settlement settlement = settlementRepository.findById(settlementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Settlement not found"));
+        
+        if (!groupMembershipRepository.existsByGroupAndUser_UserId(settlement.getGroup(), user.getUserId())) {
+            throw new RuntimeException("User does not have access to this settlement");
+        }
+        
+        return settlementMapper.toResponseDto(settlement);
+    }
 }
