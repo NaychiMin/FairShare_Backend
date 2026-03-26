@@ -166,4 +166,51 @@ public class SettlementService {
         
         return settlementMapper.toResponseDto(settlement);
     }
+
+    // Delete and reverse settlement
+    @Transactional
+    public void deleteSettlement(UUID settlementId, String requesterEmail) {
+        
+        User deleter = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        Settlement settlement = settlementRepository.findById(settlementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Settlement not found"));
+        
+        if (!groupMembershipRepository.existsByGroupAndUser_UserId(settlement.getGroup(), deleter.getUserId())) {
+            throw new RuntimeException("User is not a member of this group");
+        }
+        
+        List<GroupActivity> activities = groupActivityRepository.findBySettlement(settlement);
+        for (GroupActivity activity : activities) {
+            activity.setSettlement(null);
+            groupActivityRepository.save(activity);
+        }
+        
+        // TODO: decide whether delete the activities entirely
+        // groupActivityRepository.deleteAll(activities);
+        
+        balanceService.reverseSettlement(settlement);
+        
+        logSettlementDeletion(settlement, deleter);
+        
+        settlementRepository.delete(settlement);
+    }
+
+    // Log deletion of settlement in activity log
+    private void logSettlementDeletion(Settlement settlement, User deleter) {
+        GroupActivity activity = new GroupActivity();
+        activity.setGroup(settlement.getGroup());
+        activity.setUser(deleter);
+        activity.setActivityType("SETTLEMENT_DELETED");
+        activity.setAmount(settlement.getAmount());
+        activity.setDescription(String.format("%s deleted settlement: $%.2f from %s to %s",
+                deleter.getName(),
+                settlement.getAmount(),
+                settlement.getFromUser().getName(),
+                settlement.getToUser().getName()));
+        activity.setActivityTime(LocalDateTime.now());
+        
+        groupActivityRepository.save(activity);
+    }
 }
