@@ -49,6 +49,9 @@ public class Expense {
     @Column
     private LocalDateTime updatedAt;
 
+    @Column
+    private Boolean deleteInd;
+
     @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ExpenseSplit> expenseSplits;
 
@@ -172,6 +175,14 @@ public class Expense {
 
     public void setExpenseSplits(List<ExpenseSplit> expenseSplits) {
         this.expenseSplits = expenseSplits;
+    }
+
+    public Boolean setDeleteInd(Boolean deleteInd) {
+        return this.deleteInd = deleteInd;
+    }
+
+    public Boolean getDeleteInd() {
+        return this.deleteInd;
     }
 
 }

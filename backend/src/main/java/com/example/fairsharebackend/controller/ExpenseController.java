@@ -40,6 +40,15 @@ public class ExpenseController {
         ExpenseResponseDto response = expenseService.getExpenseDetails(expenseId, requesterEmail);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{expenseId}")
+    public ResponseEntity<String> deleteExpense(
+            @PathVariable UUID expenseId,
+            @RequestParam String requesterEmail) {
+
+        String response = expenseService.deleteExpense(expenseId, requesterEmail);
+        return ResponseEntity.ok(response);
+    }
     
     // Get all expenses for a group
     @GetMapping("/group/{groupId}")
