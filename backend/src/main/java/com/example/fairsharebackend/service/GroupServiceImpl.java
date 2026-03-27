@@ -192,6 +192,22 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public void leaveGroup(UUID groupId, String requesterEmail) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        List<GroupMembership> groupMem = groupMembershipRepository.findByGroup(group);
+
+        for (GroupMembership m : groupMem) {
+            User u = m.getUser();
+            if (u.getEmail().equals(requesterEmail)){
+                groupMembershipRepository.delete((m));
+                return;
+            }
+        }
+    }
+
+    @Override
     public void unarchiveGroup(UUID groupId, String requesterEmail) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));

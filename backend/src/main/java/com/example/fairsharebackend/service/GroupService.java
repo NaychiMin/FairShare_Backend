@@ -19,7 +19,7 @@ public interface GroupService {
 
     Group createGroup(GroupCreateRequestDto group);
     List<GroupSummaryResponseDto> getAllGroups(String email); // active groups
-
+    void leaveGroup(UUID groupId, String requesterEmail);
     List<GroupSummaryResponseDto> getArchivedGroups(String email);      // archived
     void archiveGroup(UUID groupId, String requesterEmail);
     void unarchiveGroup(UUID groupId, String requesterEmail);
