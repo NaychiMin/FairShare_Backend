@@ -51,16 +51,8 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
             String roleName,
             String membershipStatus
     );
-
-
-
-
-}
-
-
     @Query("SELECT gm.user FROM GroupMembership gm " +
        "WHERE gm.group = :group " +
        "AND gm.user != :currentUser")
         List<User> findOtherMembersInGroup(@Param("group") Group group, @Param("currentUser") User currentUser);
 }
-
