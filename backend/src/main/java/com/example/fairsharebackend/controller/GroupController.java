@@ -10,6 +10,7 @@ import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
 import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 import com.example.fairsharebackend.service.GroupService;
 import com.example.fairsharebackend.service.UserService;
+import com.example.fairsharebackend.entity.dto.response.GroupMemberActionStatusResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -134,4 +135,26 @@ public class GroupController {
         groupService.revokeAdmin(groupId, userId, requesterEmail);
         return ResponseEntity.ok("Admin privileges revoked");
     }
+
+
+    @GetMapping("/{groupId}/members/action-status")
+    public ResponseEntity<List<GroupMemberActionStatusResponse>> getGroupMemberActionStatuses(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail
+    ) {
+        List<GroupMemberActionStatusResponse> statuses =
+                groupService.getGroupMemberActionStatuses(groupId, requesterEmail);
+        return ResponseEntity.ok(statuses);
+    }
+
+    @DeleteMapping("/{groupId}/members/{userId}")
+    public ResponseEntity<String> removeGroupMember(
+            @PathVariable UUID groupId,
+            @PathVariable UUID userId,
+            @RequestParam String requesterEmail
+    ) {
+        groupService.removeGroupMember(groupId, userId, requesterEmail);
+        return ResponseEntity.ok("Member removed");
+    }
+
 }
