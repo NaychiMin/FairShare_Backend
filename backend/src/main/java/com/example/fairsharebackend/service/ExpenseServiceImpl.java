@@ -139,6 +139,14 @@ public class ExpenseServiceImpl implements ExpenseService {
         
         return expenseMapper.toExpenseResponseDto(expense);
     }
+
+    @Override
+    public String deleteExpense(UUID expenseId, String requesterEmail) {
+        Expense exp = expenseRepository.findById(expenseId).get();
+        exp.setDeleteInd(true);
+        expenseRepository.save(exp);
+        return "done";
+    }
     
     @Override
     public List<ExpenseResponseDto> getGroupExpenses(UUID groupId, String requesterEmail) {

@@ -57,6 +57,15 @@ public class GroupController {
         return ResponseEntity.ok("Group archived");
     }
 
+    @PutMapping("/leave/{groupId}")
+    public ResponseEntity<String> leaveGroup(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail
+    ) {
+        groupService.leaveGroup(groupId, requesterEmail);
+        return ResponseEntity.ok("Left Group");
+    }
+
     @PutMapping("/unarchive/{groupId}")
     public ResponseEntity<String> unarchiveGroup(
             @PathVariable UUID groupId,
