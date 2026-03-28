@@ -4,6 +4,8 @@ import com.example.fairsharebackend.entity.Group;
 import com.example.fairsharebackend.entity.GroupMembership;
 import com.example.fairsharebackend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,6 +28,7 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
     void deleteByGroup_GroupId(UUID groupId);
     boolean existsByGroupAndUser_UserId(Group group, UUID userId);
     List<GroupMembership> findByGroup(Group group);
+
 
     boolean existsByGroup_GroupIdAndUser_EmailAndMembershipStatus(
             java.util.UUID groupId,
@@ -55,5 +58,9 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
 }
 
 
-
+    @Query("SELECT gm.user FROM GroupMembership gm " +
+       "WHERE gm.group = :group " +
+       "AND gm.user != :currentUser")
+        List<User> findOtherMembersInGroup(@Param("group") Group group, @Param("currentUser") User currentUser);
+}
 
