@@ -36,6 +36,9 @@ public class User {
     @JsonIgnore
     private Set<StaticRole> staticRoles = new HashSet<>();
 
+    @OneToMany(mappedBy = "user")
+    private Set<UserBadge> userBadges;
+
     public User() {
     }
 
@@ -85,5 +88,13 @@ public class User {
 
     public void setUserCredential(UserCredential userCredential) {
         this.userCredential = userCredential;
+    }
+
+    public Set<UserBadge> getUserBadges() {
+        return userBadges;
+    }
+
+    public void setUserBadges(Set<UserBadge> userBadges) {
+        this.userBadges = userBadges;
     }
 }

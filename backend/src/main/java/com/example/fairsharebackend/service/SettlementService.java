@@ -23,6 +23,7 @@ public class SettlementService {
     private final GroupRepository groupRepository;
     private final GroupMembershipRepository groupMembershipRepository;
     private final BalanceService balanceService;
+    private final BadgeEngine badgeEngine;
     private final SettlementMapper settlementMapper;
     private final GroupActivityRepository groupActivityRepository;
 
@@ -32,6 +33,7 @@ public class SettlementService {
             GroupRepository groupRepository,
             GroupMembershipRepository groupMembershipRepository,
             BalanceService balanceService,
+            BadgeEngine badgeEngine,
             SettlementMapper settlementMapper,
             GroupActivityRepository groupActivityRepository) {
         this.settlementRepository = settlementRepository;
@@ -39,6 +41,7 @@ public class SettlementService {
         this.groupRepository = groupRepository;
         this.groupMembershipRepository = groupMembershipRepository;
         this.balanceService = balanceService;
+        this.badgeEngine = badgeEngine;
         this.settlementMapper = settlementMapper;
         this.groupActivityRepository = groupActivityRepository;
     }
@@ -89,7 +92,8 @@ public class SettlementService {
         balanceService.updateBalancesForSettlement(savedSettlement);
         
         logSettlementActivity(group, creator, savedSettlement);
-        
+        badgeEngine.evaluate(savedSettlement);
+
         return settlementMapper.toResponseDto(savedSettlement);
     }
     
