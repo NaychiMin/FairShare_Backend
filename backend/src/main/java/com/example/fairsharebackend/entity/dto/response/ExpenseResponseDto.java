@@ -15,7 +15,7 @@ public class ExpenseResponseDto {
     private String paidByName;      
     private String paidByEmail;  
     
-    // Created by (audit) - NEW
+    // Created by (audit)
     private UUID createdByUserId;
     private String createdByName;
     private String createdByEmail;

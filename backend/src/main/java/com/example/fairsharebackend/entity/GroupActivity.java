@@ -27,6 +27,10 @@ public class GroupActivity {
     @JoinColumn(name = "expenseId")
     private Expense expense; // For expense-related activities
 
+    @ManyToOne
+    @JoinColumn(name = "settlementId")
+    private Settlement settlement; // For expense-related activities
+
     @Column(precision = 10, scale = 2)
     private BigDecimal amount; // For monetary activities
 
@@ -79,6 +83,14 @@ public class GroupActivity {
 
     public void setExpense(Expense expense) {
         this.expense = expense;
+    }
+
+    public Settlement getSettlement() {
+        return this.settlement;
+    }
+
+    public void setSettlement(Settlement settlement) {
+        this.settlement = settlement;
     }
 
     public BigDecimal getAmount() {

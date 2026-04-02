@@ -28,6 +28,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final GroupActivityRepository groupActivityRepository;
     private final SplitStrategyFactory strategyFactory;
     private final ExpenseMapper expenseMapper;
+    private final BalanceService balanceService;
 
     public ExpenseServiceImpl(
             ExpenseRepository expenseRepository,
@@ -37,7 +38,8 @@ public class ExpenseServiceImpl implements ExpenseService {
             GroupMembershipRepository groupMembershipRepository,
             GroupActivityRepository groupActivityRepository,
             SplitStrategyFactory strategyFactory,
-            ExpenseMapper expenseMapper) {
+            ExpenseMapper expenseMapper,
+            BalanceService balanceService) {
         this.expenseRepository = expenseRepository;
         this.expenseSplitRepository = expenseSplitRepository;
         this.groupRepository = groupRepository;
@@ -46,6 +48,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         this.groupActivityRepository = groupActivityRepository;
         this.strategyFactory = strategyFactory;
         this.expenseMapper = expenseMapper;
+        this.balanceService = balanceService;
     }
 
     @Override
@@ -114,6 +117,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         
         expenseSplitRepository.saveAll(splits);
         savedExpense.setExpenseSplits(splits);
+        balanceService.updateBalancesForNewExpense(savedExpense);
 
         updateExpenseSettlementStatus(savedExpense);
 
