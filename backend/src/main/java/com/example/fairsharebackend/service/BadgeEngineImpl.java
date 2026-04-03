@@ -39,38 +39,45 @@ public class BadgeEngineImpl implements BadgeEngine {
 
     public void evaluate(Settlement settlement) {
         log.info("Start evaluating Settlement :: {} ", settlement.getSettlementId());
+        try {
+            List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.SETTLEMENT);
 
-        List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.SETTLEMENT);
+            BadgeEvaluationContext context = new BadgeEvaluationContext();
+            context.setGroup(settlement.getGroup());
+            context.setSettlement(settlement);
 
-        BadgeEvaluationContext context = new BadgeEvaluationContext();
-        context.setGroup(settlement.getGroup());
-        context.setSettlement(settlement);
+            for (Badge b : applicableBadges) {
+                log.info("For Badge :: {}", b.getName());
+                BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
 
-        for (Badge b : applicableBadges) {
-            log.info("For Badge :: {}", b.getName());
-            BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
-
-            if (evaluator.qualifies(settlement.getFromUser(), b, context)) {
-                this.awardBadge(settlement.getFromUser(), b, settlement.getGroup());
+                if (evaluator.qualifies(settlement.getFromUser(), b, context)) {
+                    this.awardBadge(settlement.getFromUser(), b, settlement.getGroup());
+                }
             }
+        } catch (Exception e) {
+            log.error("Evaluation terminated. Error evaluating :: ", e);
         }
     }
 
     public void evaluate(Expense expense) {
         log.info("Start evaluating Expense :: {} ", expense.getExpenseId());
-        List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.EXPENSE);
+        try {
+            List<Badge> applicableBadges = badgeRepository.findByBadgeType(BadgeType.EXPENSE);
 
-        BadgeEvaluationContext context = new BadgeEvaluationContext();
-        context.setGroup(expense.getGroup());
-        context.setExpense(expense);
+            BadgeEvaluationContext context = new BadgeEvaluationContext();
+            context.setGroup(expense.getGroup());
+            context.setExpense(expense);
 
-        for (Badge b : applicableBadges) {
-            log.info("For Badge :: {}", b.getName());
-            BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
+            for (Badge b : applicableBadges) {
+                log.info("For Badge :: {}", b.getName());
+                BadgeEvaluator evaluator = badgeEvaluatorRegistry.get(b.getBadgeRuleType());
 
-            if (evaluator.qualifies(expense.getPaidBy(), b, context)) {
-                this.awardBadge(expense.getPaidBy(), b, expense.getGroup());
+                if (evaluator.qualifies(expense.getPaidBy(), b, context)) {
+                    this.awardBadge(expense.getPaidBy(), b, expense.getGroup());
+                }
             }
+        } catch (Exception e) {
+            log.error("Evaluation terminated. Error evaluating :: ", e);
         }
     }
 
