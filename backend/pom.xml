@@ -21,6 +21,7 @@
     <properties>
         <java.version>17</java.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
+		<tomcat.version>10.1.52</tomcat.version>
     </properties>
 
     <dependencies>
