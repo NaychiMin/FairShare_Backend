@@ -20,9 +20,21 @@ NUS-ISS GCDMSS
 3. In application-dev.properties (src/main/resources/application-dev.properties), replace the following (do NOT touch the other fields)
 
    ```
-   spring.datasource.url=#REPLACE
-   spring.datasource.username=#REPLACE
-   spring.datasource.password=#REPLACE
+   spring.application.name=fairsharebackend
+   
+   spring.datasource.url=#CHANGE
+   spring.datasource.username=#CHANGE
+   spring.datasource.password=#CHANGE
+   spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+   
+   spring.jpa.hibernate.ddl-auto=update
+   spring.jpa.show-sql=true
+   spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+   spring.sql.init.mode=always
+   spring.jpa.defer-datasource-initialization=true
+   
+   #Temp
+   jwt.secret=YzA5ODQ3ZjU1YjQxYjE2ZjQwY2RlYmUyNjY2N2NhY2U0YjYxYzQyMg==
    ```
 
 ## Launching in DEV environment
