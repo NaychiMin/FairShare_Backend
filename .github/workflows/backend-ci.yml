@@ -57,7 +57,7 @@ jobs:
           ${{ runner.os }}-trivy-db
 
     - name: Run Trivy Image Scan
-      uses: aquasecurity/trivy-action@0.24.0
+      uses: aquasecurity/trivy-action@latest
       with:
         image-ref: fairshare-backend
         format: table
