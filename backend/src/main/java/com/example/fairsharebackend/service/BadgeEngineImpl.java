@@ -3,6 +3,8 @@ package com.example.fairsharebackend.service;
 import com.example.fairsharebackend.constant.BadgeRuleType;
 import com.example.fairsharebackend.constant.BadgeType;
 import com.example.fairsharebackend.entity.*;
+import com.example.fairsharebackend.entity.dto.response.UserBadgeDto;
+import com.example.fairsharebackend.mapper.UserBadgeMapper;
 import com.example.fairsharebackend.repository.BadgeRepository;
 import com.example.fairsharebackend.repository.UserBadgeRepository;
 import com.example.fairsharebackend.util.BadgeEvaluatorRegistry;
@@ -20,16 +22,19 @@ public class BadgeEngineImpl implements BadgeEngine {
     private final BadgeNotificationService badgeNotificationService;
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
+    private final UserBadgeMapper userBadgeMapper;
     public BadgeEngineImpl(
             BadgeEvaluatorRegistry badgeEvaluatorRegistry,
             BadgeNotificationService badgeNotificationService,
             BadgeRepository badgeRepository,
-            UserBadgeRepository userBadgeRepository
+            UserBadgeRepository userBadgeRepository,
+            UserBadgeMapper userBadgeMapper
     ) {
         this.badgeEvaluatorRegistry = badgeEvaluatorRegistry;
         this.badgeNotificationService = badgeNotificationService;
         this.badgeRepository = badgeRepository;
         this.userBadgeRepository = userBadgeRepository;
+        this.userBadgeMapper = userBadgeMapper;
     }
 
     public void evaluate(Settlement settlement) {
@@ -78,7 +83,8 @@ public class BadgeEngineImpl implements BadgeEngine {
         userBadge.setCreatedAt(LocalDateTime.now());
         userBadge.setUpdatedAt(null);
 
-        this.badgeNotificationService.notifyBadgeEarned(user.getUserId(), userBadge);
+        UserBadgeDto dto = this.userBadgeMapper.toDto(userBadge);
+        this.badgeNotificationService.notifyBadgeEarned(user.getUserId(), dto);
         userBadgeRepository.save(userBadge);
     }
 }
