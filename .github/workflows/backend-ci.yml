@@ -29,7 +29,7 @@ jobs:
       run: |
         cd backend
         chmod +x mvnw
-        ./mvnw clean verify
+        ./mvnw clean verify -Dspring.profiles.active=test
 
     - name: Upload Test Artifacts
       uses: actions/upload-artifact@v4
@@ -92,7 +92,7 @@ jobs:
     - name: Start backend
       run: |
         cd backend
-        nohup java -jar target/*.jar &
+        nohup java -jar target/*.jar -Dspring.profiles.active=test &
         sleep 30
 
     - name: Run OWASP ZAP Full Scan Action
