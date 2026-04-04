@@ -1,6 +1,6 @@
 package com.example.fairsharebackend.service;
 
-import com.example.fairsharebackend.entity.UserBadge;
+import com.example.fairsharebackend.entity.dto.response.UserBadgeDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Service
 public class BadgeNotificationServiceImpl implements BadgeNotificationService {
-    private static final Logger log = LoggerFactory.getLogger(BadgeNotificationService.class);
+    private static final Logger log = LoggerFactory.getLogger(BadgeNotificationServiceImpl.class);
     private final SimpMessagingTemplate messagingTemplate;
 
     public BadgeNotificationServiceImpl(SimpMessagingTemplate messagingTemplate) {
@@ -19,7 +19,7 @@ public class BadgeNotificationServiceImpl implements BadgeNotificationService {
     }
 
     @Override
-    public void notifyBadgeEarned(UUID userId, UserBadge badge) {
+    public void notifyBadgeEarned(UUID userId, UserBadgeDto badge) {
         log.info("Sending badge notification to user {}: {}", userId, badge.getBadge().getName());
 
         messagingTemplate.convertAndSend(
@@ -29,7 +29,7 @@ public class BadgeNotificationServiceImpl implements BadgeNotificationService {
     }
 
     @Override
-    public void notifyBadgeEarnedToGroup(UUID groupId, UserBadge badge) {
+    public void notifyBadgeEarnedToGroup(UUID groupId, UserBadgeDto badge) {
         log.info("Sending badge notification to group {}: {}", groupId, badge.getBadge().getName());
 
         // Send to group-specific topic
@@ -40,10 +40,10 @@ public class BadgeNotificationServiceImpl implements BadgeNotificationService {
     }
 
     @Override
-    public void notifyMultipleBadgesEarned(UUID userId, List<UserBadge> badges) {
+    public void notifyMultipleBadgesEarned(UUID userId, List<UserBadgeDto> badges) {
         log.info("Sending {} badge notifications to user {}", badges.size(), userId);
 
-        for (UserBadge badge : badges) {
+        for (UserBadgeDto badge : badges) {
             notifyBadgeEarned(userId, badge);
         }
     }

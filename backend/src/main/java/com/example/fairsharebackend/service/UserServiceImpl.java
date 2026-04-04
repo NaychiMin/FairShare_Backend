@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-            res.setUser(user);
+            res.setUser(this.userMapper.toDto(user));
             res.setJwt(jwt);
             return res;
         } catch (BadCredentialsException e) {

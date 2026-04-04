@@ -4,6 +4,7 @@ import com.example.fairsharebackend.constant.BadgeRuleType;
 import com.example.fairsharebackend.constant.BadgeScope;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.exception.EvaluatorException;
+import com.example.fairsharebackend.repository.PairwiseBalanceRepository;
 import com.example.fairsharebackend.repository.SettlementRepository;
 import com.example.fairsharebackend.repository.UserBadgeRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,19 +14,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+
 @Component
 public class SettlementTimingBadgeEvaluatorImpl implements BadgeEvaluator {
-    private final String TIMING_KEY = "timing";
+    private final String TIMING_KEY = "timingInMin";
     private static final Logger log = LoggerFactory.getLogger(SettlementTimingBadgeEvaluatorImpl.class);
     private final SettlementRepository settlementRepository;
     private final UserBadgeRepository userBadgeRepository;
+    private final PairwiseBalanceRepository pairwiseBalanceRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     public SettlementTimingBadgeEvaluatorImpl(
             SettlementRepository settlementRepository,
-            UserBadgeRepository userBadgeRepository
+            UserBadgeRepository userBadgeRepository,
+            PairwiseBalanceRepository pairwiseBalanceRepository
     ) {
         this.settlementRepository = settlementRepository;
         this.userBadgeRepository = userBadgeRepository;
+        this.pairwiseBalanceRepository = pairwiseBalanceRepository;
     }
 
     @Override
@@ -42,6 +50,7 @@ public class SettlementTimingBadgeEvaluatorImpl implements BadgeEvaluator {
             return false;
         }
 
+
         Settlement settlement = context.getSettlement();
         boolean alreadyEarned = hasUserEarnedBadge(
                 settlement.getFromUser(),
@@ -50,16 +59,33 @@ public class SettlementTimingBadgeEvaluatorImpl implements BadgeEvaluator {
         );
 
         if (alreadyEarned) {
-            log.info("User {} has alread earned Badge {}", user.getName(), badge.getName());
+            log.info("User {} has already earned Badge {}", user.getName(), badge.getName());
             return false;
         }
 
         Group group = context.getGroup();
-        Integer timing = this.getBadgeTiming(badge.getRuleConfig());
 
-        long currentLong = this.settlementRepository.countByGroupAndFromUser(group, user);
+        Optional<PairwiseBalance> latestBalance = pairwiseBalanceRepository
+                .findTopByGroup_GroupIdAndDebtor_UserIdOrderByLastUpdatedDesc(group.getGroupId(), context.getSettlement().getFromUser().getUserId());
+        if (latestBalance.isEmpty()) {
+            log.info("No latest balance found for User {} from group {}", user.getName(), group.getGroupName());
+            return false;
+        }
 
-        return false;
+        LocalDateTime latestBalanceLastUpdate = latestBalance.get().getLastUpdated();
+        LocalDateTime settlementTime = settlement.getCreatedAt();
+        Integer timingInMin = this.getBadgeTiming(badge.getRuleConfig());
+
+        log.info("Benchmark: timingInMin {}", timingInMin);
+        log.info("Comparing: last balance last update {} VS settlement created at {}", latestBalanceLastUpdate, settlementTime);
+
+        if (latestBalanceLastUpdate == null || settlementTime == null || timingInMin == null) {
+            return false;
+        }
+
+        long diffInMinutes = ChronoUnit.MINUTES.between(latestBalanceLastUpdate, settlementTime);
+        log.info("Comparing: diffInMinutes {}", diffInMinutes);
+        return diffInMinutes < timingInMin;
     }
 
     private void validateContext(BadgeEvaluationContext context) {

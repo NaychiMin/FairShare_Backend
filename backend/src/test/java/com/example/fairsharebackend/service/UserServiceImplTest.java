@@ -5,6 +5,7 @@ import com.example.fairsharebackend.entity.UserCredential;
 import com.example.fairsharebackend.entity.dto.request.UserLoginRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdatePasswordRequestDto;
+import com.example.fairsharebackend.entity.dto.response.UserDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
 import com.example.fairsharebackend.mapper.UserMapper;
 import com.example.fairsharebackend.repository.UserRepository;
@@ -83,6 +84,9 @@ class UserServiceImplTest {
         request.setEmail("test@example.com");
         request.setPassword("password");
 
+        UserDto dto = new UserDto();
+        dto.setEmail("test@example.com");
+
         User user = new User();
         user.setEmail("test@example.com");
 
@@ -90,11 +94,13 @@ class UserServiceImplTest {
                 .thenReturn(mock(UsernamePasswordAuthenticationToken.class));
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(jwtUtil.generateToken(user)).thenReturn("jwt-token");
+        when(userMapper.toDto(user)).thenReturn(dto);
 
         UserLoginResponseDto response = userService.login(request, servletRes);
 
         assertNotNull(response);
-        assertEquals(user, response.getUser());
+        assertNotNull(response.getUser());
+        assertEquals(user.getUserId(), response.getUser().getUserId());
         assertEquals("jwt-token", response.getJwt());
     }
 
