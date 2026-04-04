@@ -7,6 +7,8 @@ import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto;
 import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 import com.example.fairsharebackend.exception.ResourceNotFoundException;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
+import com.example.fairsharebackend.entity.dto.response.GroupMemberActionStatusResponse;
+import java.math.BigDecimal;
 import com.example.fairsharebackend.mapper.GroupMapper;
 import com.example.fairsharebackend.mapper.UserMapper;
 import com.example.fairsharebackend.repository.*;
@@ -18,6 +20,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,11 +37,13 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMembershipRepository groupMembershipRepository;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
+    private final BalanceService balanceService;
 
 
     private static final String STATUS_ACTIVE = "Active";
     private static final String STATUS_ARCHIVED = "Archived";
-    private static final String ROLE_GROUP_ADMIN = "GROUP_ADMIN";
+    private static final String ROLE_GROUP_ADMIN = "GROUP_ADMIN";;
+    private static final String ROLE_GROUP_MEMBER = "GROUP_MEMBER";
 
 
     public GroupServiceImpl(
@@ -47,7 +52,8 @@ public class GroupServiceImpl implements GroupService {
             UserRepository userRepository,
             GroupMembershipRepository groupMembershipRepository,
             RoleRepository roleRepository,
-            JwtUtil jwtUtil
+            JwtUtil jwtUtil,
+            BalanceService balanceService
     ) {
         this.groupRepository = groupRepository;
         this.groupMapper = groupMapper;
@@ -55,6 +61,7 @@ public class GroupServiceImpl implements GroupService {
         this.groupMembershipRepository = groupMembershipRepository;
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
+        this.balanceService = balanceService;
     }
 
     @Override
@@ -88,41 +95,6 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException("Unable to register at this time. Please try again later.");
         }
     }
-
-//    public List<Group> getAllGroups(String email) {
-//        User user = userRepository.findByEmail(email).get();
-//        List<GroupMembership> groupMemberships = groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
-//        List groups = new ArrayList();
-//        for (GroupMembership membership : groupMemberships) {
-//            groups.add(membership.getGroup());
-//        }
-//        return groups;
-//    }
-
-
-//    public List<GroupSummaryResponseDto> getAllGroups(String email) {
-//        User user = userRepository.findByEmail(email).orElseThrow();
-//
-//        List<GroupMembership> groupMemberships =
-//                groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
-//
-//        List<GroupSummaryResponseDto> result = new ArrayList<>();
-//
-//        for (GroupMembership membership : groupMemberships) {
-//            Group g = membership.getGroup();
-//            boolean isAdmin = membership.getRole() != null
-//                    && "GROUP_ADMIN".equals(membership.getRole().getName())
-//                    && "Active".equals(membership.getMembershipStatus());
-//
-//            result.add(new GroupSummaryResponseDto(
-//                    g.getGroupId(),
-//                    g.getGroupName(),
-//                    g.getCategory(),
-//                    isAdmin
-//            ));
-//        }
-//        return result;
-//    }
 
     @Override
     public List<GroupSummaryResponseDto> getAllGroups(String email) {
@@ -189,6 +161,44 @@ public class GroupServiceImpl implements GroupService {
 
         group.setStatus(STATUS_ARCHIVED);
         groupRepository.save(group);
+    }
+
+//    @Override
+//    public void leaveGroup(UUID groupId, String requesterEmail) {
+//        Group group = groupRepository.findById(groupId)
+//                .orElseThrow(() -> new RuntimeException("Group not found"));
+//
+//        List<GroupMembership> groupMem = groupMembershipRepository.findByGroup(group);
+//
+//        for (GroupMembership m : groupMem) {
+//            User u = m.getUser();
+//            if (u.getEmail().equals(requesterEmail)){
+//                groupMembershipRepository.delete((m));
+//                return;
+//            }
+//        }
+//    }
+
+
+    @Override
+    public void leaveGroup(UUID groupId, String requesterEmail) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        GroupMembership membership = groupMembershipRepository
+                .findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(groupId, requester.getUserId(), STATUS_ACTIVE)
+                .orElseThrow(() -> new RuntimeException("User is not an active member of this group"));
+
+        BigDecimal netBalance = balanceService.getNetBalanceForUserInGroup(group, requester);
+
+        if (netBalance.compareTo(BigDecimal.ZERO) != 0) {
+            throw new RuntimeException(getLeaveWarningMessage(netBalance));
+        }
+
+        groupMembershipRepository.delete(membership);
     }
 
     @Override
@@ -308,4 +318,184 @@ public class GroupServiceImpl implements GroupService {
                 })
                 .collect(Collectors.toList());
     }
+
+
+
+    @Override
+    public void assignAdmin(UUID groupId, UUID userId, String requesterEmail) {
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        boolean requesterIsAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!requesterIsAdmin) {
+            throw new RuntimeException("Not authorized to assign admin privileges");
+        }
+
+        GroupMembership targetMembership = groupMembershipRepository
+                .findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(groupId, userId, STATUS_ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Member not found in this group"));
+
+        if (targetMembership.getRole() != null
+                && ROLE_GROUP_ADMIN.equals(targetMembership.getRole().getName())) {
+            throw new RuntimeException("User is already a group admin");
+        }
+
+        Role adminRole = roleRepository.getByName(ROLE_GROUP_ADMIN);
+        if (adminRole == null) {
+            throw new RuntimeException("Missing role: GROUP_ADMIN");
+        }
+
+        targetMembership.setRole(adminRole);
+        groupMembershipRepository.save(targetMembership);
+    }
+
+    @Override
+    public void revokeAdmin(UUID groupId, UUID userId, String requesterEmail) {
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        boolean requesterIsAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!requesterIsAdmin) {
+            throw new RuntimeException("Not authorized to revoke admin privileges");
+        }
+
+        GroupMembership targetMembership = groupMembershipRepository
+                .findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(groupId, userId, STATUS_ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Member not found in this group"));
+
+        if (targetMembership.getRole() == null
+                || !ROLE_GROUP_ADMIN.equals(targetMembership.getRole().getName())) {
+            throw new RuntimeException("User is not a group admin");
+        }
+
+        long adminCount = groupMembershipRepository
+                .countByGroup_GroupIdAndRole_NameAndMembershipStatus(
+                        groupId, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (adminCount <= 1) {
+            throw new RuntimeException("Cannot revoke the last group admin");
+        }
+
+        Role memberRole = roleRepository.getByName(ROLE_GROUP_MEMBER);
+        if (memberRole == null) {
+            throw new RuntimeException("Missing role: GROUP_MEMBER");
+        }
+
+        targetMembership.setRole(memberRole);
+        groupMembershipRepository.save(targetMembership);
+    }
+
+
+    private String getLeaveWarningMessage(BigDecimal netBalance) {
+        if (netBalance.compareTo(BigDecimal.ZERO) < 0) {
+            return "You cannot leave this group because you still owe money.";
+        }
+        if (netBalance.compareTo(BigDecimal.ZERO) > 0) {
+            return "You cannot leave this group because you are still owed money.";
+        }
+        return null;
+    }
+
+    private String getRemoveWarningMessage(BigDecimal netBalance) {
+        if (netBalance.compareTo(BigDecimal.ZERO) < 0) {
+            return "This member cannot be removed because they still owe money.";
+        }
+        if (netBalance.compareTo(BigDecimal.ZERO) > 0) {
+            return "This member cannot be removed because they are still owed money.";
+        }
+        return null;
+    }
+
+    @Override
+    public List<GroupMemberActionStatusResponse> getGroupMemberActionStatuses(UUID groupId, String requesterEmail) {
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+
+        boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, requester.getUserId());
+        if (!isMember) {
+            throw new RuntimeException("User is not a member of this group");
+        }
+
+        boolean requesterIsAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        List<GroupMembership> memberships = groupMembershipRepository.findByGroup(group);
+
+        return memberships.stream().map(membership -> {
+            User memberUser = membership.getUser();
+            BigDecimal netBalance = balanceService.getNetBalanceForUserInGroup(group, memberUser);
+            boolean zeroBalance = netBalance.compareTo(BigDecimal.ZERO) == 0;
+            boolean isSelf = memberUser.getUserId().equals(requester.getUserId());
+
+            boolean canLeave = isSelf && zeroBalance;
+            boolean canRemove = requesterIsAdmin && !isSelf && zeroBalance;
+
+            String warningMessage = null;
+            if (isSelf && !zeroBalance) {
+                warningMessage = getLeaveWarningMessage(netBalance);
+            } else if (!isSelf && requesterIsAdmin && !zeroBalance) {
+                warningMessage = getRemoveWarningMessage(netBalance);
+            }
+
+            return new GroupMemberActionStatusResponse(
+                    memberUser.getUserId(),
+                    netBalance,
+                    canLeave,
+                    canRemove,
+                    warningMessage
+            );
+        }).toList();
+    }
+
+
+    @Override
+    public void removeGroupMember(UUID groupId, UUID userId, String requesterEmail) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        boolean requesterIsAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!requesterIsAdmin) {
+            throw new RuntimeException("Only group admins can remove members");
+        }
+
+        if (requester.getUserId().equals(userId)) {
+            throw new RuntimeException("Admins cannot remove themselves. Use leave group instead.");
+        }
+
+        GroupMembership targetMembership = groupMembershipRepository
+                .findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(groupId, userId, STATUS_ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Target member not found"));
+
+        User targetUser = targetMembership.getUser();
+        BigDecimal netBalance = balanceService.getNetBalanceForUserInGroup(group, targetUser);
+
+        if (netBalance.compareTo(BigDecimal.ZERO) != 0) {
+            throw new RuntimeException(getRemoveWarningMessage(netBalance));
+        }
+
+        groupMembershipRepository.delete(targetMembership);
+    }
+
+
 }

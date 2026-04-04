@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @PasswordMatches
-public class UserRegisterRequestDto {
+public class UserRegisterRequestDto implements UserPasswordConfirmable {
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     private String email;

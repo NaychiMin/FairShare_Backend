@@ -32,4 +32,7 @@ public interface PairwiseBalanceRepository extends JpaRepository<PairwiseBalance
     BigDecimal sumAmountByGroupAndDebtor(@Param("group") Group group, @Param("user") User user);
     
     void deleteByGroup(Group group);
+
+    Optional<PairwiseBalance>
+    findTopByGroup_GroupIdAndDebtor_UserIdOrderByLastUpdatedDesc(UUID groupId, UUID debtorId);
 }

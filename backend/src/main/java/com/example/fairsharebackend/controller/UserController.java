@@ -2,6 +2,7 @@ package com.example.fairsharebackend.controller;
 
 import com.example.fairsharebackend.entity.User;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
+import com.example.fairsharebackend.entity.dto.request.UserUpdatePasswordRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
 import com.example.fairsharebackend.service.UserService;
@@ -30,5 +31,14 @@ public class UserController {
         User updatedUser = userService.updateUser(userId, dto);
         res.setUser(updatedUser);
         return ResponseEntity.ok(res);
+    }
+
+    @PutMapping("/{userId}/update-password")
+    public ResponseEntity<String> updatePassword(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UserUpdatePasswordRequestDto dto
+    ) {
+        userService.updatePassword(userId, dto);
+        return ResponseEntity.ok("Password updated successfully.");
     }
 }

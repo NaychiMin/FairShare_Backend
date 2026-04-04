@@ -24,6 +24,7 @@ public class JwtUtil {
 
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getUserId());
         claims.put("email", user.getEmail());
         claims.put("roles",
                 user.getStaticRoles().stream()
@@ -47,12 +48,12 @@ public class JwtUtil {
 
     // Extract DB user ID from token (subject)
     public String extractUserId(String token) {
-        return Jwts.parserBuilder()
+        return (String) Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject();
+                .get("userId");
     }
 
     // Extract email from claims
@@ -76,7 +77,7 @@ public class JwtUtil {
                 .get("roles");
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()

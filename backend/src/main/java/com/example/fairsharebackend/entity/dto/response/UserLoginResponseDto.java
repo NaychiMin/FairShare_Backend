@@ -3,17 +3,17 @@ package com.example.fairsharebackend.entity.dto.response;
 import com.example.fairsharebackend.entity.User;
 
 public class UserLoginResponseDto {
-    private User user;
+    private UserDto user;
     private String jwt;
 
     public UserLoginResponseDto() {
     }
 
-    public User getUser() {
+    public UserDto getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(UserDto user) {
         this.user = user;
     }
 

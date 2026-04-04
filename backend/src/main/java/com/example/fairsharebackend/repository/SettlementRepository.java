@@ -21,4 +21,6 @@ public interface SettlementRepository extends JpaRepository<Settlement, UUID> {
     
     List<Settlement> findByGroupAndFromUserAndToUserOrderBySettlementDateDesc(
         Group group, User fromUser, User toUser);
+
+    long countByGroupAndFromUser(Group group, User fromUser);
 }

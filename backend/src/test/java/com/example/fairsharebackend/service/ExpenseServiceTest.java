@@ -57,6 +57,9 @@ class ExpenseServiceTest {
     @Mock
     private ExpenseMapper expenseMapper;
 
+    @Mock
+    private BalanceService balanceService;
+
     @InjectMocks
     private ExpenseServiceImpl expenseService;
 
