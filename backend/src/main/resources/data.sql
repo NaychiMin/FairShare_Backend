@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS fairshare;
+
 -- STATIC ROLES
 INSERT INTO `fairshare`.`static_role`
 (`static_role_id`,
