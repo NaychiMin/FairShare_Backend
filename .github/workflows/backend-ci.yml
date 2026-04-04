@@ -87,7 +87,7 @@ jobs:
       run: |
         cd backend
         chmod +x mvnw
-        ./mvnw clean package -DskipTests
+        ./mvnw clean package -DskipTests -Dspring.profiles.active=test
 
     - name: Start backend
       run: |
