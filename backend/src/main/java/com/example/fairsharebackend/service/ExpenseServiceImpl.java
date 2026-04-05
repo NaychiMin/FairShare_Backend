@@ -8,6 +8,7 @@ import com.example.fairsharebackend.factory.SplitStrategyFactory;
 import com.example.fairsharebackend.mapper.ExpenseMapper;
 import com.example.fairsharebackend.repository.*;
 import com.example.fairsharebackend.strategy.SplitStrategy;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseMapper expenseMapper;
     private final BalanceService balanceService;
     private final BadgeEngine badgeEngine;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ExpenseServiceImpl(
             ExpenseRepository expenseRepository,
@@ -41,7 +43,9 @@ public class ExpenseServiceImpl implements ExpenseService {
             SplitStrategyFactory strategyFactory,
             ExpenseMapper expenseMapper,
             BalanceService balanceService,
-            BadgeEngine badgeEngine) {
+            BadgeEngine badgeEngine,
+            ApplicationEventPublisher eventPublisher
+    ) {
         this.expenseRepository = expenseRepository;
         this.expenseSplitRepository = expenseSplitRepository;
         this.groupRepository = groupRepository;
@@ -52,6 +56,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         this.expenseMapper = expenseMapper;
         this.balanceService = balanceService;
         this.badgeEngine = badgeEngine;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -125,7 +130,8 @@ public class ExpenseServiceImpl implements ExpenseService {
         updateExpenseSettlementStatus(savedExpense);
 
         logActivity(group, creator, savedExpense);
-        badgeEngine.evaluate(savedExpense);
+
+        eventPublisher.publishEvent(savedExpense);
 
         return expenseMapper.toExpenseResponseDto(savedExpense);
     }
