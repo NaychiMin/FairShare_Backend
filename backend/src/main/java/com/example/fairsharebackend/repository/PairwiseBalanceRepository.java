@@ -35,4 +35,12 @@ public interface PairwiseBalanceRepository extends JpaRepository<PairwiseBalance
 
     Optional<PairwiseBalance>
     findTopByGroup_GroupIdAndDebtor_UserIdOrderByLastUpdatedDesc(UUID groupId, UUID debtorId);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(pb) > 0 THEN true ELSE false END
+        FROM PairwiseBalance pb
+        WHERE pb.group = :group
+          AND pb.amount <> 0
+    """)
+        boolean existsOutstandingBalancesByGroup(@Param("group") Group group);
 }

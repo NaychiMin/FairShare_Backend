@@ -11,6 +11,7 @@ import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.UserLoginResponseDto;
 import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 import com.example.fairsharebackend.entity.dto.response.GroupMemberActionStatusResponse;
+import com.example.fairsharebackend.entity.dto.response.GroupActionStatusResponse;
 
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,10 @@ public interface GroupService {
     List<GroupMemberActionStatusResponse> getGroupMemberActionStatuses(UUID groupId, String requesterEmail);
 
     void removeGroupMember(UUID groupId, UUID userId, String requesterEmail);
+
+
+
+    GroupActionStatusResponse getGroupActionStatus(UUID groupId, String requesterEmail);
 
 
 }

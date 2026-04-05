@@ -3,6 +3,7 @@ package com.example.fairsharebackend.service;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
+import com.example.fairsharebackend.entity.dto.response.GroupActionStatusResponse;
 import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto; // new
 import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 import com.example.fairsharebackend.exception.ResourceNotFoundException;
@@ -38,6 +39,11 @@ public class GroupServiceImpl implements GroupService {
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
     private final BalanceService balanceService;
+    private final GroupActivityRepository groupActivityRepository;
+    private final PairwiseBalanceRepository pairwiseBalanceRepository;
+    private final ExpenseRepository expenseRepository;
+    private final SettlementRepository settlementRepository;
+    private final GroupInvitationRepository groupInvitationRepository;
 
 
     private static final String STATUS_ACTIVE = "Active";
@@ -53,7 +59,7 @@ public class GroupServiceImpl implements GroupService {
             GroupMembershipRepository groupMembershipRepository,
             RoleRepository roleRepository,
             JwtUtil jwtUtil,
-            BalanceService balanceService
+            BalanceService balanceService, GroupActivityRepository groupActivityRepository, PairwiseBalanceRepository pairwiseBalanceRepository, ExpenseRepository expenseRepository, SettlementRepository settlementRepository, GroupInvitationRepository groupInvitationRepository
     ) {
         this.groupRepository = groupRepository;
         this.groupMapper = groupMapper;
@@ -62,6 +68,11 @@ public class GroupServiceImpl implements GroupService {
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
         this.balanceService = balanceService;
+        this.groupActivityRepository = groupActivityRepository;
+        this.pairwiseBalanceRepository = pairwiseBalanceRepository;
+        this.expenseRepository = expenseRepository;
+        this.settlementRepository = settlementRepository;
+        this.groupInvitationRepository = groupInvitationRepository;
     }
 
     @Override
@@ -147,37 +158,18 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public void archiveGroup(UUID groupId, String requesterEmail) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+        Group group = getGroupOrThrow(groupId);
+        validateAdmin(groupId, requesterEmail, "archive");
 
-        boolean isAdmin = groupMembershipRepository
-                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
-                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
-                );
-
-        if (!isAdmin) {
-            throw new RuntimeException("Not authorized to archive this group");
+        if (balanceService.hasOutstandingBalances(group)) {
+            throw new RuntimeException(
+                    "This group cannot be archived because there are still outstanding balances."
+            );
         }
 
         group.setStatus(STATUS_ARCHIVED);
         groupRepository.save(group);
     }
-
-//    @Override
-//    public void leaveGroup(UUID groupId, String requesterEmail) {
-//        Group group = groupRepository.findById(groupId)
-//                .orElseThrow(() -> new RuntimeException("Group not found"));
-//
-//        List<GroupMembership> groupMem = groupMembershipRepository.findByGroup(group);
-//
-//        for (GroupMembership m : groupMem) {
-//            User u = m.getUser();
-//            if (u.getEmail().equals(requesterEmail)){
-//                groupMembershipRepository.delete((m));
-//                return;
-//            }
-//        }
-//    }
 
 
     @Override
@@ -250,28 +242,27 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public void deleteGroup(UUID groupId, String requesterEmail) {
+        Group group = getGroupOrThrow(groupId);
+        validateAdmin(groupId, requesterEmail, "delete");
 
-        // Ensure group exists
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
-
-        // Admin check (email-based)
-        boolean isAdmin = groupMembershipRepository
-                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
-                        groupId,
-                        requesterEmail,
-                        "GROUP_ADMIN",
-                        "Active"
-                );
-
-        if (!isAdmin) {
-            throw new RuntimeException("Not authorized to delete this group");
+        if (balanceService.hasOutstandingBalances(group)) {
+            throw new RuntimeException(
+                    "This group cannot be deleted because there are still outstanding balances."
+            );
         }
 
-        // Remove memberships first (safe for FK constraints)
+        // delete all child rows first
+        groupActivityRepository.deleteByGroup_GroupId(groupId);
+        pairwiseBalanceRepository.deleteByGroup(group);
+
+        // add these too if your project has them
+        expenseRepository.deleteByGroup_GroupId(groupId);
+        settlementRepository.deleteByGroup_GroupId(groupId);
+        groupInvitationRepository.deleteByGroup_GroupId(groupId);
+
         groupMembershipRepository.deleteByGroup_GroupId(groupId);
 
-        // Delete the group
+        // finally delete parent
         groupRepository.delete(group);
     }
 
@@ -495,6 +486,36 @@ public class GroupServiceImpl implements GroupService {
         }
 
         groupMembershipRepository.delete(targetMembership);
+    }
+
+    @Override
+    public GroupActionStatusResponse getGroupActionStatus(UUID groupId, String requesterEmail) {
+        Group group = getGroupOrThrow(groupId);
+        validateAdmin(groupId, requesterEmail, "manage");
+
+        boolean zeroBalances = !balanceService.hasOutstandingBalances(group);
+        String warningMessage = zeroBalances
+                ? null
+                : "Settle all balances before archiving or deleting this group.";
+
+        return new GroupActionStatusResponse(zeroBalances, zeroBalances, warningMessage);
+    }
+
+
+    private Group getGroupOrThrow(UUID groupId) {
+        return groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+    }
+
+    private void validateAdmin(UUID groupId, String requesterEmail, String action) {
+        boolean isAdmin = groupMembershipRepository
+                .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
+                        groupId, requesterEmail, ROLE_GROUP_ADMIN, STATUS_ACTIVE
+                );
+
+        if (!isAdmin) {
+            throw new RuntimeException("Not authorized to " + action + " this group");
+        }
     }
 
 

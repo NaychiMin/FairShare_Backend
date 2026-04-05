@@ -14,4 +14,5 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     List<Expense> findByGroup_GroupIdOrderByExpenseDateDesc(UUID groupId);
     long countByGroupAndCreatedBy(Group group, User createdBy);
 
+    void deleteByGroup_GroupId(UUID groupId);
 }

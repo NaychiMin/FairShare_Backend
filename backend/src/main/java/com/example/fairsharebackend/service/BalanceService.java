@@ -40,68 +40,6 @@ public class BalanceService {
             updatePairwiseBalance(group, debtor, creditor, amount);
         }
     }
-    
-    // // Updates or creates a pairwise balance between debtor and creditor (includes net logic)
-    // @Transactional
-    // public void updatePairwiseBalance(Group group, User debtor, User creditor, BigDecimal amount) {
-    //     // Try to find existing balance where debtor owes creditor
-    //     Optional<PairwiseBalance> existingBalance = 
-    //         balanceRepository.findByGroupAndDebtorAndCreditor(group, debtor, creditor);
-        
-    //     if (existingBalance.isPresent()) {
-    //         PairwiseBalance balance = existingBalance.get();
-    //         balance.setAmount(balance.getAmount().add(amount));
-    //         balance.setLastUpdated(LocalDateTime.now());
-    //         balance.setIsSettled(false);
-    //         balanceRepository.save(balance);
-    //         return;
-    //     }
-        
-    //     // Check if there's a reverse balance (creditor owes debtor)
-    //     Optional<PairwiseBalance> reverseBalance = 
-    //         balanceRepository.findByGroupAndDebtorAndCreditor(group, creditor, debtor);
-        
-    //     if (reverseBalance.isPresent()) {
-    //         PairwiseBalance reverse = reverseBalance.get();
-    //         BigDecimal reverseAmount = reverse.getAmount();
-            
-    //         int comparison = amount.compareTo(reverseAmount);
-            
-    //         if (comparison > 0) {
-    //             // New debt is larger: update reverse to point the other way
-    //             BigDecimal netAmount = amount.subtract(reverseAmount);
-    //             reverse.setDebtor(debtor);
-    //             reverse.setCreditor(creditor);
-    //             reverse.setAmount(netAmount);
-    //             reverse.setLastUpdated(LocalDateTime.now());
-    //             reverse.setIsSettled(false);
-    //             balanceRepository.save(reverse);
-                
-    //         } else if (comparison < 0) {
-    //             // Reverse debt is larger: just reduce the reverse amount
-    //             BigDecimal netAmount = reverseAmount.subtract(amount);
-    //             reverse.setAmount(netAmount);
-    //             reverse.setLastUpdated(LocalDateTime.now());
-    //             reverse.setIsSettled(netAmount.compareTo(BigDecimal.ZERO) == 0);
-    //             balanceRepository.save(reverse);
-                
-    //         } else {
-    //             // Exactly equal: delete the reverse balance
-    //             balanceRepository.delete(reverse);
-    //         }
-    //         return;
-    //     }
-        
-    //     // No existing balance in either direction - create new one
-    //     PairwiseBalance newBalance = new PairwiseBalance();
-    //     newBalance.setGroup(group);
-    //     newBalance.setDebtor(debtor);
-    //     newBalance.setCreditor(creditor);
-    //     newBalance.setAmount(amount);
-    //     newBalance.setLastUpdated(LocalDateTime.now());
-    //     newBalance.setIsSettled(false);
-    //     balanceRepository.save(newBalance);
-    // }
 
     // Updates or creates a pairwise balance between debtor and creditor (includes net logic)
     @Transactional
@@ -264,5 +202,14 @@ public class BalanceService {
         BigDecimal amount = settlement.getAmount();
         
         updatePairwiseBalance(group, payer, receiver, amount);
+    }
+
+
+    public boolean hasOutstandingBalances(Group group) {
+        return balanceRepository.existsOutstandingBalancesByGroup(group);
+    }
+
+    public void deleteGroupBalances(Group group) {
+        balanceRepository.deleteByGroup(group);
     }
 }

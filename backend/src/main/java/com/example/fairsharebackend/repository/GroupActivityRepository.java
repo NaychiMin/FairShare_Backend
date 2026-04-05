@@ -12,4 +12,5 @@ import java.util.UUID;
 @Repository
 public interface GroupActivityRepository extends JpaRepository<GroupActivity, UUID> {
     List<GroupActivity> findBySettlement(Settlement settlement);
+    void deleteByGroup_GroupId(UUID groupId);
 }
