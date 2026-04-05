@@ -44,6 +44,7 @@ public class GroupServiceImpl implements GroupService {
     private final ExpenseRepository expenseRepository;
     private final SettlementRepository settlementRepository;
     private final GroupInvitationRepository groupInvitationRepository;
+    private final NotificationService notificationService;
 
 
     private static final String STATUS_ACTIVE = "Active";
@@ -59,7 +60,7 @@ public class GroupServiceImpl implements GroupService {
             GroupMembershipRepository groupMembershipRepository,
             RoleRepository roleRepository,
             JwtUtil jwtUtil,
-            BalanceService balanceService, GroupActivityRepository groupActivityRepository, PairwiseBalanceRepository pairwiseBalanceRepository, ExpenseRepository expenseRepository, SettlementRepository settlementRepository, GroupInvitationRepository groupInvitationRepository
+            BalanceService balanceService, GroupActivityRepository groupActivityRepository, PairwiseBalanceRepository pairwiseBalanceRepository, ExpenseRepository expenseRepository, SettlementRepository settlementRepository, GroupInvitationRepository groupInvitationRepository, NotificationService notificationService
     ) {
         this.groupRepository = groupRepository;
         this.groupMapper = groupMapper;
@@ -73,6 +74,7 @@ public class GroupServiceImpl implements GroupService {
         this.expenseRepository = expenseRepository;
         this.settlementRepository = settlementRepository;
         this.groupInvitationRepository = groupInvitationRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -169,6 +171,20 @@ public class GroupServiceImpl implements GroupService {
 
         group.setStatus(STATUS_ARCHIVED);
         groupRepository.save(group);
+
+        User actor = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<User> members = getActiveGroupUsers(group.getGroupId());
+
+        notificationService.notifyUsers(
+                members,
+                actor,
+                group,
+                "GROUP_ARCHIVED",
+                actor.getName() + " archived the group " + group.getGroupName(),
+                group.getGroupId()
+        );
     }
 
 
@@ -189,6 +205,19 @@ public class GroupServiceImpl implements GroupService {
         if (netBalance.compareTo(BigDecimal.ZERO) != 0) {
             throw new RuntimeException(getLeaveWarningMessage(netBalance));
         }
+
+        List<User> members = getActiveGroupUsers(groupId);
+
+        notificationService.notifyUsers(
+                members,
+                requester,
+                group,
+                "MEMBER_LEFT",
+                requester.getName() + " left the group " + group.getGroupName(),
+                requester.getUserId()
+        );
+
+        groupMembershipRepository.delete(membership);
 
         groupMembershipRepository.delete(membership);
     }
@@ -237,6 +266,24 @@ public class GroupServiceImpl implements GroupService {
 
         group.setGroupName(dto.getGroupName());
         group.setCategory(dto.getCategory());
+
+
+        User actor = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<User> members = getActiveGroupUsers(group.getGroupId());
+
+        notificationService.notifyUsers(
+                members,
+                actor,
+                group,
+                "GROUP_UPDATED",
+                actor.getName() + " updated the details of " + group.getGroupName(),
+                group.getGroupId()
+        );
+
+
+
         return groupRepository.save(group);
     }
 
@@ -261,6 +308,21 @@ public class GroupServiceImpl implements GroupService {
         groupInvitationRepository.deleteByGroup_GroupId(groupId);
 
         groupMembershipRepository.deleteByGroup_GroupId(groupId);
+
+
+        User actor = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<User> members = getActiveGroupUsers(group.getGroupId());
+
+        notificationService.notifyUsers(
+                members,
+                actor,
+                group,
+                "GROUP_DELETED",
+                actor.getName() + " deleted the group " + group.getGroupName(),
+                group.getGroupId()
+        );
 
         // finally delete parent
         groupRepository.delete(group);
@@ -342,6 +404,20 @@ public class GroupServiceImpl implements GroupService {
 
         targetMembership.setRole(adminRole);
         groupMembershipRepository.save(targetMembership);
+
+        User actor = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<User> members = getActiveGroupUsers(groupId);
+
+        notificationService.notifyUsers(
+                members,
+                actor,
+                targetMembership.getGroup(),
+                "ADMIN_ASSIGNED",
+                targetMembership.getUser().getName() + " was assigned as an admin in " + targetMembership.getGroup().getGroupName(),
+                targetMembership.getUser().getUserId()
+        );
     }
 
     @Override
@@ -485,6 +561,29 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException(getRemoveWarningMessage(netBalance));
         }
 
+        User removedUser = targetMembership.getUser();
+        User actor = requester;
+
+        List<User> members = getActiveGroupUsers(groupId);
+
+        notificationService.notifyUsers(
+                members,
+                actor,
+                group,
+                "MEMBER_REMOVED",
+                removedUser.getName() + " was removed from " + group.getGroupName(),
+                removedUser.getUserId()
+        );
+
+        notificationService.notifyUser(
+                removedUser,
+                actor,
+                group,
+                "REMOVED_FROM_GROUP",
+                "You were removed from " + group.getGroupName(),
+                group.getGroupId()
+        );
+
         groupMembershipRepository.delete(targetMembership);
     }
 
@@ -517,6 +616,16 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException("Not authorized to " + action + " this group");
         }
     }
+
+    private List<User> getActiveGroupUsers(UUID groupId) {
+        return groupMembershipRepository
+                .findByGroup_GroupIdAndMembershipStatus(groupId, STATUS_ACTIVE)
+                .stream()
+                .map(GroupMembership::getUser)
+                .toList();
+    }
+
+
 
 
 }

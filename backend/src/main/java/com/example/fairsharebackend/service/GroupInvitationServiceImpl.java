@@ -29,19 +29,21 @@ public class GroupInvitationServiceImpl implements GroupInvitationService {
     private final GroupMembershipRepository groupMembershipRepository;
     private final GroupInvitationRepository groupInvitationRepository;
     private final RoleRepository roleRepository;
+    private final NotificationService notificationService;
 
     public GroupInvitationServiceImpl(
             GroupRepository groupRepository,
             UserRepository userRepository,
             GroupMembershipRepository groupMembershipRepository,
             GroupInvitationRepository groupInvitationRepository,
-            RoleRepository roleRepository
+            RoleRepository roleRepository, NotificationService notificationService
     ) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
         this.groupMembershipRepository = groupMembershipRepository;
         this.groupInvitationRepository = groupInvitationRepository;
         this.roleRepository = roleRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -82,6 +84,19 @@ public class GroupInvitationServiceImpl implements GroupInvitationService {
         invitation.setExpiresAt(LocalDateTime.now().plusDays(7));
 
         groupInvitationRepository.save(invitation);
+
+        if (invitation.getInvitedEmail() != null && !invitation.getInvitedEmail().isBlank()) {
+            userRepository.findByEmail(invitation.getInvitedEmail()).ifPresent(invitedUser ->
+                    notificationService.notifyUser(
+                            invitedUser,
+                            requester,
+                            group,
+                            "INVITE_PENDING",
+                            requester.getName() + " invited you to join " + group.getGroupName(),
+                            invitation.getInvitationId()
+                    )
+            );
+        }
 
         String inviteLink = "http://localhost:5173/groups/invite/accept?token=" + invitation.getToken();
 
@@ -141,6 +156,31 @@ public class GroupInvitationServiceImpl implements GroupInvitationService {
 
         invitation.setStatus(INVITE_ACCEPTED);
         groupInvitationRepository.save(invitation);
+
+        notificationService.notifyUser(
+                invitation.getCreatedBy(),
+                requester,
+                invitation.getGroup(),
+                "INVITE_ACCEPTED",
+                requester.getName() + " accepted the invite to join " + invitation.getGroup().getGroupName(),
+                invitation.getInvitationId()
+        );
+
+
+        List<User> groupMembers = groupMembershipRepository
+                .findByGroup_GroupIdAndMembershipStatus(invitation.getGroup().getGroupId(), STATUS_ACTIVE)
+                .stream()
+                .map(GroupMembership::getUser)
+                .toList();
+
+        notificationService.notifyUsers(
+                groupMembers,
+                requester,
+                invitation.getGroup(),
+                "MEMBER_JOINED",
+                requester.getName() + " joined " + invitation.getGroup().getGroupName(),
+                requester.getUserId()
+        );
     }
 
 

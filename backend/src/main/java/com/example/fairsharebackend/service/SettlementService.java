@@ -26,6 +26,7 @@ public class SettlementService {
     private final BadgeEngine badgeEngine;
     private final SettlementMapper settlementMapper;
     private final GroupActivityRepository groupActivityRepository;
+    private final NotificationService notificationService;
 
     public SettlementService(
             SettlementRepository settlementRepository,
@@ -35,7 +36,7 @@ public class SettlementService {
             BalanceService balanceService,
             BadgeEngine badgeEngine,
             SettlementMapper settlementMapper,
-            GroupActivityRepository groupActivityRepository) {
+            GroupActivityRepository groupActivityRepository, NotificationService notificationService) {
         this.settlementRepository = settlementRepository;
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
@@ -44,6 +45,7 @@ public class SettlementService {
         this.badgeEngine = badgeEngine;
         this.settlementMapper = settlementMapper;
         this.groupActivityRepository = groupActivityRepository;
+        this.notificationService = notificationService;
     }
 
     // Create settlement in group
@@ -93,6 +95,16 @@ public class SettlementService {
         
         logSettlementActivity(group, creator, savedSettlement);
         badgeEngine.evaluate(savedSettlement);
+
+
+        notificationService.notifyUser(
+                receiver,
+                payer,
+                group,
+                "PAYMENT_RECEIVED",
+                payer.getName() + " paid you $" + savedSettlement.getAmount() + " in " + group.getGroupName(),
+                savedSettlement.getSettlementId()
+        );
 
         return settlementMapper.toResponseDto(savedSettlement);
     }
