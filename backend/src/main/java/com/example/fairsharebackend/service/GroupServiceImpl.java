@@ -45,6 +45,7 @@ public class GroupServiceImpl implements GroupService {
     private final SettlementRepository settlementRepository;
     private final GroupInvitationRepository groupInvitationRepository;
     private final NotificationService notificationService;
+    private final NotificationRepository notificationRepository;
 
 
     private static final String STATUS_ACTIVE = "Active";
@@ -60,7 +61,7 @@ public class GroupServiceImpl implements GroupService {
             GroupMembershipRepository groupMembershipRepository,
             RoleRepository roleRepository,
             JwtUtil jwtUtil,
-            BalanceService balanceService, GroupActivityRepository groupActivityRepository, PairwiseBalanceRepository pairwiseBalanceRepository, ExpenseRepository expenseRepository, SettlementRepository settlementRepository, GroupInvitationRepository groupInvitationRepository, NotificationService notificationService
+            BalanceService balanceService, GroupActivityRepository groupActivityRepository, PairwiseBalanceRepository pairwiseBalanceRepository, ExpenseRepository expenseRepository, SettlementRepository settlementRepository, GroupInvitationRepository groupInvitationRepository, NotificationService notificationService, NotificationRepository notificationRepository
     ) {
         this.groupRepository = groupRepository;
         this.groupMapper = groupMapper;
@@ -75,6 +76,7 @@ public class GroupServiceImpl implements GroupService {
         this.settlementRepository = settlementRepository;
         this.groupInvitationRepository = groupInvitationRepository;
         this.notificationService = notificationService;
+        this.notificationRepository = notificationRepository;
     }
 
     @Override
@@ -323,6 +325,25 @@ public class GroupServiceImpl implements GroupService {
                 actor.getName() + " deleted the group " + group.getGroupName(),
                 group.getGroupId()
         );
+
+        notificationService.notifyUsers(
+                members,
+                actor,
+                group,
+                "GROUP_DELETED",
+                actor.getName() + " deleted the group " + group.getGroupName(),
+                group.getGroupId()
+        );
+
+        // delete child rows first
+        notificationRepository.deleteByGroup_GroupId(groupId);
+        groupActivityRepository.deleteByGroup_GroupId(groupId);
+        pairwiseBalanceRepository.deleteByGroup(group);
+        groupInvitationRepository.deleteByGroup_GroupId(groupId);
+        groupMembershipRepository.deleteByGroup_GroupId(groupId);
+
+// then parent
+        groupRepository.delete(group);
 
         // finally delete parent
         groupRepository.delete(group);

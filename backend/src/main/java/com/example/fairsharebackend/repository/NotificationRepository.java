@@ -27,4 +27,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
         group by n.group.groupId
     """)
     List<UnreadGroupNotificationProjection> countUnreadByGroup(@Param("email") String email);
+
+    void deleteByGroup_GroupId(UUID groupId);
 }
