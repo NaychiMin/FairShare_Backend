@@ -1,7 +1,9 @@
 package com.example.fairsharebackend.entity.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import com.example.fairsharebackend.constant.FeedEntryType;
 
+import java.util.List;
 import java.util.UUID;
 
 public class FeedEntryFilterRequestDto {
@@ -12,6 +14,7 @@ public class FeedEntryFilterRequestDto {
     private Integer size = 10;    // page size
     private String sortBy = "createdDate";      // default sort field
     private String direction = "DESC";       // ASC or DESC
+    private List<FeedEntryType> types;
 
     public FeedEntryFilterRequestDto() {
     }
@@ -62,5 +65,13 @@ public class FeedEntryFilterRequestDto {
 
     public void setDirection(String direction) {
         this.direction = direction;
+    }
+
+    public List<FeedEntryType> getTypes() {
+        return types;
+    }
+
+    public void setTypes(List<FeedEntryType> types) {
+        this.types = types;
     }
 }

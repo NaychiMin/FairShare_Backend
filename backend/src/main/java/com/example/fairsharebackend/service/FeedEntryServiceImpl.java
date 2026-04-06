@@ -38,6 +38,7 @@ public class FeedEntryServiceImpl implements FeedEntryService {
         Page<FeedEntry> page =  feedEntryRepository.findFeedEntryFilteredSorted(
                 dto.getUserId(),
                 dto.getGroupId(),
+                dto.getTypes(),
                 pageable
         );
         return page.map(feedEntryMapper::toDto);
