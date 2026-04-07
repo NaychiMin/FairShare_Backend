@@ -1,7 +1,9 @@
 name: Backend CD
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
   # workflow_run:
   #   workflows: ["Backend CI"]
   #   types:
