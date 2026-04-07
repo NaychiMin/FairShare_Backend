@@ -3,6 +3,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
+    command: --innodb-buffer-pool-size=128M
     container_name: fairshare-mysql-dev
     restart: unless-stopped
     environment:
