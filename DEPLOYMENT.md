@@ -122,8 +122,10 @@ SELECT COUNT(*) FROM tb_badge;
 EXIT;
 ```
 
-### Step 7: Fix CORS policy in backend
-src/main/java/.../config/CorsConfig.java
+### Step 7: Fix CORS policy in backend (Add in ip address of our server)
+1. src/main/java/.../config/CorsConfig.java
+2. SecurityConfig.java
+3. WebSocketConfig.java
 
 ### Troubleshooting Common Issues
 

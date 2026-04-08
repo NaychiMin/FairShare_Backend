@@ -13,8 +13,10 @@ public class CorsConfig {
            @Override
            public void addCorsMappings(CorsRegistry registry) {
                registry.addMapping("/**")
-                    //    .allowedOrigins("http://localhost:5173") // your React dev server
-                       .allowedOrigins("http://143.198.195.225") // your React dev server
+                       .allowedOrigins(
+                            "http://localhost:5173",
+                            "http://143.198.195.225"
+                        )
                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                        .allowCredentials(true);
            }
