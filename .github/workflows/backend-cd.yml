@@ -91,34 +91,3 @@ jobs:
           docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d
           
           echo "Dev deployment completed"
-
-  # deploy-sit:
-  #   needs: deploy-dev
-  #   runs-on: ubuntu-latest
-  #   if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-
-  #   - name: Deploy to SIT
-  #     uses: appleboy/ssh-action@master
-  #     with:
-  #       host: ${{ secrets.SIT_SERVER_HOST }}
-  #       username: ${{ secrets.SIT_SERVER_USER }}
-  #       key: ${{ secrets.SIT_SERVER_SSH_KEY }}
-  #       port: 22
-  #       script: |
-  #         cd ~/fairshare-deployment
-          
-  #         # Pull latest compose file
-  #         git pull origin main
-          
-  #         # Log in to GitHub Container Registry
-  #         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          
-  #         # Pull and start containers
-  #         docker-compose -f docker-compose.sit.yml pull
-  #         docker-compose -f docker-compose.sit.yml up -d
-          
-  #         echo "SIT deployment completed"
