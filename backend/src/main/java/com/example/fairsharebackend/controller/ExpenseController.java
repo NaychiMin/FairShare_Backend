@@ -31,6 +31,15 @@ public class ExpenseController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @PutMapping("/{expenseId}")
+    public ResponseEntity<ExpenseResponseDto> editExpense(
+            @Valid @RequestBody ExpenseCreateRequestDto request,
+            @RequestParam String requesterEmail) {
+
+        ExpenseResponseDto response = expenseService.updateExpense(request, requesterEmail);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
     // Get a singular expense
     @GetMapping("/{expenseId}")
     public ResponseEntity<ExpenseResponseDto> getExpenseDetails(

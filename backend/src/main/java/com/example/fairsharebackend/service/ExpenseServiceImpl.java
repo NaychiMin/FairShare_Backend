@@ -11,8 +11,11 @@ import com.example.fairsharebackend.strategy.SplitStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -124,6 +127,112 @@ public class ExpenseServiceImpl implements ExpenseService {
         logActivity(group, creator, savedExpense);
 
         return expenseMapper.toExpenseResponseDto(savedExpense);
+    }
+
+    @Override
+    @Transactional
+    public ExpenseResponseDto updateExpense(ExpenseCreateRequestDto request, String requesterEmail) {
+
+        User creator = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Creator not found with email: " + requesterEmail));
+
+        Group group = groupRepository.findById(request.getGroupId())
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+
+        // Validate Creator Membership
+        if (!groupMembershipRepository.existsByGroupAndUser_UserId(group, creator.getUserId())) {
+            throw new RuntimeException("Creator is not a member of this group");
+        }
+
+        User paidBy = userRepository.findById(request.getPaidByUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Selected payer not found"));
+
+        // Validate Payer Membership
+        if (!groupMembershipRepository.existsByGroupAndUser_UserId(group, paidBy.getUserId())) {
+            throw new RuntimeException("Selected payer is not a member of this group");
+        }
+
+        List<User> participants = userRepository.findAllById(request.getParticipantUserIds());
+        if (participants.size() != request.getParticipantUserIds().size()) {
+            throw new RuntimeException("Some participants not found");
+        }
+
+        // Validate Participant Memberships
+        for (User participant : participants) {
+            if (!groupMembershipRepository.existsByGroupAndUser_UserId(group, participant.getUserId())) {
+                throw new RuntimeException("User " + participant.getUserId() + " is not a member of this group");
+            }
+        }
+
+        // Load and Update the Expense Entity
+        Expense expense = expenseRepository.findById(request.getExpenseId())
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
+
+        expense.setGroup(group);
+        expense.setPaidBy(paidBy);
+        expense.setCreatedBy(creator);
+        expense.setAmount(request.getAmount());
+        expense.setDescription(request.getDescription());
+        expense.setNotes(request.getNotes());
+        expense.setSplitStrategy(request.getSplitStrategy());
+        expense.setExpenseDate(request.getExpenseDate());
+        expense.setUpdatedAt(LocalDateTime.now());
+
+        // Strategy Calculation
+        SplitStrategy strategy = strategyFactory.getStrategy(request.getSplitStrategy());
+        List<ExpenseSplit> newCalculatedSplits = strategy.calculateSplits(expense, participants);
+
+        // Fetch current splits from DB
+        List<ExpenseSplit> origSplits = expenseSplitRepository.findByExpense(expense);
+        Map<UUID, ExpenseSplit> origSplitMap = origSplits.stream()
+                .collect(Collectors.toMap(s -> s.getUser().getUserId(), s -> s));
+
+        // 1. Identify splits to remove (users no longer in the list)
+        Set<UUID> newUserIds = participants.stream().map(User::getUserId).collect(Collectors.toSet());
+        List<ExpenseSplit> toRemove = origSplits.stream()
+                .filter(s -> !newUserIds.contains(s.getUser().getUserId()))
+                .collect(Collectors.toList());
+
+        expenseSplitRepository.deleteAll(toRemove);
+        origSplits.removeAll(toRemove);
+
+        // 2. Sync Existing and Add New
+        for (ExpenseSplit calculatedSplit : newCalculatedSplits) {
+            ExpenseSplit existing = origSplitMap.get(calculatedSplit.getUser().getUserId());
+            if (existing != null) {
+                existing.setShareAmount(calculatedSplit.getShareAmount());
+                syncSettlement(existing, paidBy);
+            } else {
+                // New participant: link to expense and sync
+                calculatedSplit.setExpense(expense);
+                syncSettlement(calculatedSplit, paidBy);
+                origSplits.add(calculatedSplit);
+            }
+        }
+
+        // 3. Save all changes
+        expenseSplitRepository.saveAll(origSplits);
+        Expense savedExpense = expenseRepository.save(expense);
+
+        // 4. Update Balances & Expense Status
+        // Note: ensure balanceService handles the "delta" or resets properly
+        balanceService.updateBalancesForNewExpense(savedExpense);
+        updateExpenseSettlementStatus(savedExpense);
+
+        logActivity(group, creator, savedExpense);
+
+        return expenseMapper.toExpenseResponseDto(savedExpense);
+    }
+
+    private void syncSettlement(ExpenseSplit split, User paidBy) {
+        if (split.getUser().getUserId().equals(paidBy.getUserId())) {
+            split.setSettledAmount(split.getShareAmount());
+            split.setIsSettled(true);
+        } else {
+            // Crucial: reset for others if they haven't paid back yet
+            split.setSettledAmount(BigDecimal.valueOf(0.0));
+            split.setIsSettled(false);
+        }
     }
     
     @Override
