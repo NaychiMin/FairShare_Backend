@@ -28,6 +28,28 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
         logExpense(event);
     }
 
+    @EventListener
+    @Override
+    public void handleGroupBalance(Group group) {
+        log.warn("handleGroupBalance");
+        logGroup(group);
+    }
+
+    public void logGroup(Group group) {
+        log.info("logGroup :: {}", group.getGroupName());
+        try {
+            FeedEntry feedEntry = new FeedEntry();
+            feedEntry.setGroupSettled(group);
+            feedEntry.setGroup(group);
+            feedEntry.setFeedEntryType(FeedEntryType.GROUP_ALL_SETTLED);
+            feedEntry.setCreatedDate(LocalDateTime.now());
+            feedEntryRepository.save(feedEntry);
+            feedEntryRepository.flush();
+        } catch (Exception e) {
+            log.error("Exception :: {}", e.getMessage());
+        }
+    }
+
     @Override
     @EventListener
     public void handleSettlementCreated(Settlement event) {
