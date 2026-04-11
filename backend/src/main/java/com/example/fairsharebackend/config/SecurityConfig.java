@@ -61,7 +61,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/group/**",
-                                "/expenses/**"
+                                "/expenses/**",
+                                "/balances/**",
+                                "/settlements/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

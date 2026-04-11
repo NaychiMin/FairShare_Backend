@@ -1,6 +1,7 @@
 package com.example.fairsharebackend.service;
 
 import com.example.fairsharebackend.entity.dto.request.SettlementCreateRequestDto;
+import com.example.fairsharebackend.entity.dto.request.SettlementEditRequestDto;
 import com.example.fairsharebackend.entity.dto.response.SettlementResponseDto;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.exception.ResourceNotFoundException;
@@ -210,6 +211,58 @@ public class SettlementService {
         activity.setAmount(settlement.getAmount());
         activity.setDescription(String.format("%s deleted settlement: $%.2f from %s to %s",
                 deleter.getName(),
+                settlement.getAmount(),
+                settlement.getFromUser().getName(),
+                settlement.getToUser().getName()));
+        activity.setActivityTime(LocalDateTime.now());
+        
+        groupActivityRepository.save(activity);
+    }
+
+    // Edit a settlement by ID
+    @Transactional
+    public SettlementResponseDto editSettlement(UUID settlementId, SettlementEditRequestDto request, String requesterEmail) {
+        
+        User editor = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + requesterEmail));
+    
+        Settlement settlement = settlementRepository.findById(settlementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Settlement not found with id: " + settlementId));
+        
+        boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(settlement.getGroup(), editor.getUserId());
+        if (!isMember) {
+            throw new RuntimeException("User is not a member of this group");
+        }
+        
+        BigDecimal oldAmount = settlement.getAmount();
+        
+        settlement.setAmount(request.getAmount());
+        settlement.setSettlementDate(request.getSettlementDate());
+        settlement.setPaymentMethod(request.getPaymentMethod());
+        settlement.setNotes(request.getNotes());
+        settlement.setUpdatedAt(LocalDateTime.now());
+        
+        if (oldAmount.compareTo(request.getAmount()) != 0) {
+            balanceService.updateBalancesForSettlementEdit(settlement, oldAmount, request.getAmount());
+        }
+        
+        Settlement updatedSettlement = settlementRepository.save(settlement);
+        
+        logSettlementEdit(updatedSettlement, editor, oldAmount);
+        
+        return settlementMapper.toResponseDto(updatedSettlement);
+    }
+
+    // Log edit of settlement in activity log
+    private void logSettlementEdit(Settlement settlement, User editor, BigDecimal oldAmount) {
+        GroupActivity activity = new GroupActivity();
+        activity.setGroup(settlement.getGroup());
+        activity.setUser(editor);
+        activity.setActivityType("SETTLEMENT_EDITED");
+        activity.setAmount(settlement.getAmount());
+        activity.setDescription(String.format("%s edited settlement: amount changed from $%.2f to $%.2f (%s → %s)",
+                editor.getName(),
+                oldAmount,
                 settlement.getAmount(),
                 settlement.getFromUser().getName(),
                 settlement.getToUser().getName()));

@@ -1,6 +1,7 @@
 package com.example.fairsharebackend.controller;
 
 import com.example.fairsharebackend.entity.dto.request.SettlementCreateRequestDto;
+import com.example.fairsharebackend.entity.dto.request.SettlementEditRequestDto;
 import com.example.fairsharebackend.entity.dto.response.SettlementResponseDto;
 import com.example.fairsharebackend.service.SettlementService;
 import jakarta.validation.Valid;
@@ -72,5 +73,16 @@ public class SettlementController {
         
         settlementService.deleteSettlement(settlementId, requesterEmail);
         return ResponseEntity.noContent().build();
+    }
+
+    // Edit settlement by ID
+    @PutMapping("/{settlementId}")
+    public ResponseEntity<SettlementResponseDto> editSettlement(
+            @PathVariable UUID settlementId,
+            @Valid @RequestBody SettlementEditRequestDto request,
+            @RequestParam String requesterEmail) {
+        
+        SettlementResponseDto response = settlementService.editSettlement(settlementId, request, requesterEmail);
+        return ResponseEntity.ok(response);
     }
 }

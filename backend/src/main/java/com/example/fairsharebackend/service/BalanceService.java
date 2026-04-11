@@ -255,7 +255,7 @@ public class BalanceService {
         updatePairwiseBalance(group, payer, receiver, amount.negate());
     }
 
-    // Reverse settlement for edit/delete
+    // Reverse settlement for delete
     @Transactional
     public void reverseSettlement(Settlement settlement) {
         User payer = settlement.getFromUser();
@@ -264,5 +264,19 @@ public class BalanceService {
         BigDecimal amount = settlement.getAmount();
         
         updatePairwiseBalance(group, payer, receiver, amount);
+    }
+
+    // Update balances when a settlement is edited
+    @Transactional
+    public void updateBalancesForSettlementEdit(Settlement settlement, BigDecimal oldAmount, BigDecimal newAmount) {
+        User payer = settlement.getFromUser();
+        User receiver = settlement.getToUser();
+        Group group = settlement.getGroup();
+        
+        // Reverse the old amount (add it back)
+        updatePairwiseBalance(group, payer, receiver, oldAmount);
+        
+        // Apply the new amount (subtract it)
+        updatePairwiseBalance(group, payer, receiver, newAmount.negate());
     }
 }
