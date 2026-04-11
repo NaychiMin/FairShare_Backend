@@ -17,6 +17,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -56,6 +57,9 @@ class ExpenseServiceTest {
 
     @Mock
     private ExpenseMapper expenseMapper;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private BalanceService balanceService;
