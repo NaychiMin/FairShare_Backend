@@ -4,6 +4,17 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Environment variables with secrets
+.env.dev
+.env.sit
+.env.prod
+.env.uat
+.env
+.env.local
+.env.example
+
+DEPLOYMENT.md
+
 ### STS ###
 .apt_generated
 .classpath
