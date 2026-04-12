@@ -10,6 +10,8 @@ import com.example.fairsharebackend.repository.UserBadgeRepository;
 import com.example.fairsharebackend.util.BadgeEvaluatorRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,18 +25,33 @@ public class BadgeEngineImpl implements BadgeEngine {
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final UserBadgeMapper userBadgeMapper;
+    private final ApplicationEventPublisher eventPublisher;
     public BadgeEngineImpl(
             BadgeEvaluatorRegistry badgeEvaluatorRegistry,
             BadgeNotificationService badgeNotificationService,
             BadgeRepository badgeRepository,
             UserBadgeRepository userBadgeRepository,
-            UserBadgeMapper userBadgeMapper
+            UserBadgeMapper userBadgeMapper,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.badgeEvaluatorRegistry = badgeEvaluatorRegistry;
         this.badgeNotificationService = badgeNotificationService;
         this.badgeRepository = badgeRepository;
         this.userBadgeRepository = userBadgeRepository;
         this.userBadgeMapper = userBadgeMapper;
+        this.eventPublisher = eventPublisher;
+    }
+
+    @Override
+    @EventListener
+    public void handleExpenseCreated(Expense event) {
+        evaluate(event);
+    }
+
+    @Override
+    @EventListener
+    public void handleSettlementCreated(Settlement event) {
+        evaluate(event);
     }
 
     public void evaluate(Settlement settlement) {
@@ -81,7 +98,7 @@ public class BadgeEngineImpl implements BadgeEngine {
         }
     }
 
-    private void awardBadge(User user, Badge badge, Group group) {
+    private UserBadge awardBadge(User user, Badge badge, Group group) {
         log.info("Awarding Badge {} to User {}", badge.getName(), user.getName());
         UserBadge userBadge = new UserBadge();
         userBadge.setUser(user);
@@ -93,5 +110,10 @@ public class BadgeEngineImpl implements BadgeEngine {
         UserBadgeDto dto = this.userBadgeMapper.toDto(userBadge);
         this.badgeNotificationService.notifyBadgeEarned(user.getUserId(), dto);
         userBadgeRepository.save(userBadge);
+        userBadgeRepository.flush();
+
+        eventPublisher.publishEvent(userBadge);
+
+        return userBadge;
     }
 }

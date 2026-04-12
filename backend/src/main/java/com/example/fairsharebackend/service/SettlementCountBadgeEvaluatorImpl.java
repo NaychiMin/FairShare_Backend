@@ -48,7 +48,7 @@ public class SettlementCountBadgeEvaluatorImpl implements BadgeEvaluator {
 
         Settlement settlement = context.getSettlement();
         boolean alreadyEarned = hasUserEarnedBadge(
-                settlement.getFromUser(),
+                settlement.getCreatedBy(),
                 badge,
                 badge.getBadgeScope() == BadgeScope.GROUP ? settlement.getGroup() : null
         );

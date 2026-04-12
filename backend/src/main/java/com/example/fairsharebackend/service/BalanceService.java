@@ -4,6 +4,7 @@ import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.response.GroupBalanceResponseDto;
 import com.example.fairsharebackend.entity.dto.response.UserBalanceDto;
 import com.example.fairsharebackend.repository.PairwiseBalanceRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class BalanceService {
-
+    private final ApplicationEventPublisher eventPublisher;
     private final PairwiseBalanceRepository balanceRepository;
 
-    public BalanceService(PairwiseBalanceRepository balanceRepository) {
+    public BalanceService(ApplicationEventPublisher eventPublisher, PairwiseBalanceRepository balanceRepository) {
+        this.eventPublisher = eventPublisher;
         this.balanceRepository = balanceRepository;
     }
 
@@ -61,6 +63,7 @@ public class BalanceService {
             if (newAmount.compareTo(BigDecimal.ZERO) == 0) {
                 // Delete record if settled
                 balanceRepository.delete(balance);
+                eventPublisher.publishEvent(new GroupFullySettledEvent(group));
                 System.out.println("[DEBUG] Deleted zero balance between " + debtor.getName() + " and " + creditor.getName());
             } else if (newAmount.compareTo(BigDecimal.ZERO) > 0) {
                 // If positive, just update

@@ -63,6 +63,15 @@ VALUES
     'You have added 5 expenses today!',
     'Record Keeper',
     '{"count": 5}'
+),
+(
+    UUID_TO_BIN('55555555-5555-5555-5555-555555555555'),
+    0,  -- SETTLEMENT_COUNT
+    1,  -- GROUP (1 based on enum order if PERSONAL=0, GROUP=1)
+    0,  -- SETTLEMENT
+    'You have added 5 settlements today!',
+    'Team Settler',
+    '{"count": 5}'
 )
 ON DUPLICATE KEY UPDATE
 description = VALUES(description),

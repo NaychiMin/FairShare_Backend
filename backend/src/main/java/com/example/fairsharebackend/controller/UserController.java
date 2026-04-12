@@ -4,7 +4,9 @@ import com.example.fairsharebackend.entity.User;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdatePasswordRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
+import com.example.fairsharebackend.entity.dto.response.UserDto;
 import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
+import com.example.fairsharebackend.entity.dto.response.UserUpdatedResponseDto;
 import com.example.fairsharebackend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +25,12 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<UserRegisterResponseDto> updateUser(
+    public ResponseEntity<UserUpdatedResponseDto> updateUser(
             @PathVariable UUID userId,
             @Valid @RequestBody UserUpdateRequestDto dto
     ) {
-        UserRegisterResponseDto res = new UserRegisterResponseDto();
-        User updatedUser = userService.updateUser(userId, dto);
+        UserUpdatedResponseDto res = new UserUpdatedResponseDto();
+        UserDto updatedUser = userService.updateUserAndReturnDto(userId, dto);
         res.setUser(updatedUser);
         return ResponseEntity.ok(res);
     }
