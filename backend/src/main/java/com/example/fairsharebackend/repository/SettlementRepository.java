@@ -23,4 +23,6 @@ public interface SettlementRepository extends JpaRepository<Settlement, UUID> {
         Group group, User fromUser, User toUser);
 
     long countByGroupAndFromUser(Group group, User fromUser);
+
+    void deleteByGroup_GroupId(UUID groupId);
 }

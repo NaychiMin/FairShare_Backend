@@ -3,14 +3,11 @@ package com.example.fairsharebackend.controller;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
-import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto;
+import com.example.fairsharebackend.entity.dto.response.*;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
 import com.example.fairsharebackend.entity.dto.request.UserUpdateRequestDto;
-import com.example.fairsharebackend.entity.dto.response.UserRegisterResponseDto;
-import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 import com.example.fairsharebackend.service.GroupService;
 import com.example.fairsharebackend.service.UserService;
-import com.example.fairsharebackend.entity.dto.response.GroupMemberActionStatusResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -155,6 +152,15 @@ public class GroupController {
     ) {
         groupService.removeGroupMember(groupId, userId, requesterEmail);
         return ResponseEntity.ok("Member removed");
+    }
+
+
+    @GetMapping("/{groupId}/action-status")
+    public ResponseEntity<GroupActionStatusResponse> getGroupActionStatus(
+            @PathVariable UUID groupId,
+            @RequestParam String requesterEmail
+    ) {
+        return ResponseEntity.ok(groupService.getGroupActionStatus(groupId, requesterEmail));
     }
 
 }

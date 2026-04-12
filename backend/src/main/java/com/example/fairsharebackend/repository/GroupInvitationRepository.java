@@ -16,4 +16,6 @@ public interface GroupInvitationRepository extends JpaRepository<GroupInvitation
     List<GroupInvitation> findAllByInvitedEmailAndStatusOrderByCreatedAtDesc(String invitedEmail, String status);
 
     List<GroupInvitation> findAllByCreatedByOrderByCreatedAtDesc(User createdBy);
+
+    void deleteByGroup_GroupId(UUID groupId);
 }

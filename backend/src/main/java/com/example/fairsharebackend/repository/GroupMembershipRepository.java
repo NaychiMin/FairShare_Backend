@@ -77,6 +77,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -127,4 +128,6 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
             "WHERE gm.group = :group " +
             "AND gm.user != :currentUser")
     List<User> findOtherMembersInGroup(@Param("group") Group group, @Param("currentUser") User currentUser);
+
+    List<GroupMembership> findByGroup_GroupIdAndMembershipStatus(UUID groupId, String membershipStatus);
 }
