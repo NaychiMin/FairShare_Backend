@@ -16,6 +16,7 @@ public interface UserService {
     UserLoginResponseDto login(UserLoginRequestDto request, HttpServletResponse response);
     User registerUser(UserRegisterRequestDto dto);
     User updateUser(UUID userId, UserUpdateRequestDto dto);
+    UserDto updateUserAndReturnDto(UUID userId, UserUpdateRequestDto dto);
     void updatePassword(UUID userId, UserUpdatePasswordRequestDto dto);
     UserDto getCurrentUser(String token);
 }

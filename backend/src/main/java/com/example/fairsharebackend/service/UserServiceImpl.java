@@ -153,6 +153,14 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    @Transactional
+    public UserDto updateUserAndReturnDto(UUID userId, UserUpdateRequestDto dto) {
+        log.info("Updating user details for userId [DTO]:: {}", userId);
+        User saved = updateUser(userId, dto);
+        return this.userMapper.toDto(saved);
+    }
+
     private void validatedRegisterRequestDto(UserRegisterRequestDto dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new BadCredentialsException("Email already in use.");
