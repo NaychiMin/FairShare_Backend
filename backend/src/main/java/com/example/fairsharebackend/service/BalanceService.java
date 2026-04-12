@@ -125,7 +125,7 @@ public class BalanceService {
             if (newAmount.compareTo(BigDecimal.ZERO) == 0) {
                 // Delete record if settled
                 balanceRepository.delete(balance);
-                eventPublisher.publishEvent(group);
+                eventPublisher.publishEvent(new GroupFullySettledEvent(group));
                 System.out.println("[DEBUG] Deleted zero balance between " + debtor.getName() + " and " + creditor.getName());
             } else if (newAmount.compareTo(BigDecimal.ZERO) > 0) {
                 // If positive, just update

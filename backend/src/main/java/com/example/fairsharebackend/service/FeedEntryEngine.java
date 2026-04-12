@@ -5,10 +5,7 @@ import org.springframework.context.event.EventListener;
 
 public interface FeedEntryEngine {
     void handleExpenseCreated(Expense event);
-
-    void handleGroupBalance(Group group);
-
-    void handleSettlementCreated(Settlement event);
+    void handleGroupBalance(GroupFullySettledEvent event);
     void handleGroupUpdated(GroupUpdatedEvent group);
     void handleBadgeCreated(UserBadge event);
 }

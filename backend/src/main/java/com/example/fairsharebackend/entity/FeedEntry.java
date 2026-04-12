@@ -45,8 +45,6 @@ public class FeedEntry {
     @Column
     private String groupUpdatedFieldNew;
     @Column
-    private Group groupSettled;
-    @Column
     private LocalDateTime createdDate;
 
     public FeedEntry() {
@@ -74,14 +72,6 @@ public class FeedEntry {
 
     public void setExpenseAdded(Expense expenseAdded) {
         this.expenseAdded = expenseAdded;
-    }
-
-    public Group getGroupSettled() {
-        return groupSettled;
-    }
-
-    public void setGroupSettled(Group groupSettled) {
-        this.groupSettled = groupSettled;
     }
 
     public Settlement getSettlementAdded() {

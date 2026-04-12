@@ -30,30 +30,8 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
 
     @EventListener
     @Override
-    public void handleGroupBalance(Group group) {
+    public void handleGroupBalance(GroupFullySettledEvent event) {
         log.warn("handleGroupBalance");
-        logGroup(group);
-    }
-
-    public void logGroup(Group group) {
-        log.info("logGroup :: {}", group.getGroupName());
-        try {
-            FeedEntry feedEntry = new FeedEntry();
-            feedEntry.setGroupSettled(group);
-            feedEntry.setGroup(group);
-            feedEntry.setFeedEntryType(FeedEntryType.GROUP_ALL_SETTLED);
-            feedEntry.setCreatedDate(LocalDateTime.now());
-            feedEntryRepository.save(feedEntry);
-            feedEntryRepository.flush();
-        } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
-        }
-    }
-
-    @Override
-    @EventListener
-    public void handleSettlementCreated(Settlement event) {
-        log.warn("handleSettlementCreated");
         logGroupFullySettled(event.getGroup());
     }
 
@@ -110,6 +88,10 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
     }
 
     public void logGroupFullySettled(Group group) {
+        if (group == null) {
+            log.error("Group is null in logGroupFullySettled");
+            return;
+        }
         log.info("logGroupFullySettled :: {}", group.getGroupName());
         try {
             FeedEntry feedEntry = new FeedEntry();
