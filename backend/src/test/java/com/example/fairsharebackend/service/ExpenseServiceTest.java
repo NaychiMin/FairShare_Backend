@@ -347,7 +347,7 @@ class ExpenseServiceTest {
         when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
         when(groupMembershipRepository.existsByGroupAndUser_UserId(group, creator.getUserId()))
                 .thenReturn(true);
-        when(expenseRepository.findByGroup_GroupIdOrderByExpenseDateDesc(groupId))
+        when(expenseRepository.findActiveExpensesByGroupId(groupId))
                 .thenReturn(Collections.emptyList());
 
         // ACT
@@ -374,7 +374,7 @@ class ExpenseServiceTest {
         when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
         when(groupMembershipRepository.existsByGroupAndUser_UserId(group, creator.getUserId()))
                 .thenReturn(true);
-        when(expenseRepository.findByGroup_GroupIdOrderByExpenseDateDesc(groupId))
+        when(expenseRepository.findActiveExpensesByGroupId(groupId))
                 .thenReturn(expenses);
         when(expenseMapper.toExpenseResponseDto(expense)).thenReturn(expectedDtos.get(0));
         when(expenseMapper.toExpenseResponseDto(expense2)).thenReturn(expectedDtos.get(1));

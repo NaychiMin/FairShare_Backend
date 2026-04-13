@@ -275,7 +275,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new RuntimeException("User is not a member of this group");
         }
 
-        List<Expense> expenses = expenseRepository.findByGroup_GroupIdOrderByExpenseDateDesc(groupId);
+        List<Expense> expenses = expenseRepository.findActiveExpensesByGroupId(groupId);
         
         return expenses.stream()
                 .map(expenseMapper::toExpenseResponseDto)
