@@ -10,6 +10,9 @@ public class ExpenseCreateRequestDto {
     @NotNull(message = "Group ID is required")
     private UUID groupId;
 
+//    @NotNull(message = "Expense ID is required")
+    private UUID expenseId;
+
     @NotNull(message = "Paid By is required")
     private UUID paidByUserId;
 
@@ -42,6 +45,14 @@ public class ExpenseCreateRequestDto {
 
     public void setGroupId(UUID groupId) {
         this.groupId = groupId;
+    }
+
+    public UUID getExpenseId() {
+        return this.expenseId;
+    }
+
+    public void setExpenseId(UUID expenseId) {
+        this.expenseId = expenseId;
     }
 
     public UUID getPaidByUserId() {
