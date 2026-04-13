@@ -47,10 +47,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             GroupActivityRepository groupActivityRepository,
             SplitStrategyFactory strategyFactory,
             ExpenseMapper expenseMapper,
-            BalanceService balanceService,
-            BadgeEngine badgeEngine,
-            ApplicationEventPublisher eventPublisher,
-            NotificationService notificationService) {
+            BalanceService balanceService, BadgeEngine badgeEngine1, NotificationService notificationService1, ApplicationEventPublisher eventPublisher1) {
 
         this.expenseRepository = expenseRepository;
         this.expenseSplitRepository = expenseSplitRepository;
@@ -61,6 +58,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         this.strategyFactory = strategyFactory;
         this.expenseMapper = expenseMapper;
         this.balanceService = balanceService;
+        this.badgeEngine = badgeEngine1;
+        this.notificationService = notificationService1;
+        this.eventPublisher = eventPublisher1;
     }
 
     @Override
