@@ -86,6 +86,6 @@ jobs:
           
           # Pull and start containers
           docker-compose --env-file .env.dev -f docker-compose.dev.yml pull
-          docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d
+          docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
           
           echo "Dev deployment completed"
