@@ -29,7 +29,7 @@ jobs:
       run: |
         cd backend
         chmod +x mvnw
-        ./mvnw clean verify
+        ./mvnw clean verify -Dspring.profiles.active=test
 
     - name: Upload Test Artifacts
       uses: actions/upload-artifact@v4
@@ -57,7 +57,7 @@ jobs:
           ${{ runner.os }}-trivy-db
 
     - name: Run Trivy Image Scan
-      uses: aquasecurity/trivy-action@0.24.0
+      uses: aquasecurity/trivy-action@v0.24.0
       with:
         image-ref: fairshare-backend
         format: table
@@ -87,13 +87,17 @@ jobs:
       run: |
         cd backend
         chmod +x mvnw
-        ./mvnw clean package -DskipTests
+        ./mvnw clean package -DskipTests -Dspring.profiles.active=test
+      env:
+        SPRING_PROFILES_ACTIVE: test
 
     - name: Start backend
       run: |
         cd backend
-        nohup java -jar target/*.jar &
+        nohup java -jar target/*.jar -Dspring.profiles.active=test &
         sleep 30
+      env:
+        SPRING_PROFILES_ACTIVE: test
 
     - name: Run OWASP ZAP Full Scan Action
       uses: zaproxy/action-full-scan@v0.13.0

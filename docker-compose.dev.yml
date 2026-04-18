@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    command: --innodb-buffer-pool-size=128M
+    container_name: fairshare-mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-fairshare}
+      MYSQL_USER: ${MYSQL_USER:-fairshare}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-fairsharepass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - fairshare-mysql-dev-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fairshare-network
+
+  backend:
+    image: ghcr.io/naychimin/fairshare_backend:latest
+    container_name: fairshare-backend-dev
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fairshare?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-fairshare}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-fairsharepass}
+      # Creates schema and runs data.sql automatically
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - fairshare-network
+
+volumes:
+  fairshare-mysql-dev-data:
+
+networks:
+  fairshare-network:
+    driver: bridge
