@@ -24,7 +24,7 @@ services:
       - fairshare-network
 
   backend:
-    image: ghcr.io/naychimin/fairshare_backend:${IMAGE_TAG:-latest}
+    image: ghcr.io/naychimin/fairshare_backend:${IMAGE_TAG}
     container_name: fairshare-backend-dev
     restart: unless-stopped
     environment:

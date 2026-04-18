@@ -85,11 +85,12 @@ jobs:
           # Pull latest compose file
           git pull origin main
 
-          # Set IMAGE_TAG environment variable for compose file
-          export IMAGE_TAG=${{ needs.build-and-push.outputs.image-tag }}
+          IMAGE_TAG=${{ needs.build-and-push.outputs.image-tag }}
+
+          echo "Deploying backend: $IMAGE_TAG"
           
           # Pull and start containers
-          docker-compose --env-file .env.dev -f docker-compose.dev.yml pull
-          docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
+          IMAGE_TAG=$IMAGE_TAG docker-compose --env-file .env.dev -f docker-compose.dev.yml pull
+          IMAGE_TAG=$IMAGE_TAG docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
           
           echo "Backend deployed version: $IMAGE_TAG"
