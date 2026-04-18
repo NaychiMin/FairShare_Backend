@@ -1,32 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
-    <!-- Tomcat (Spring boot managed) -->
+    <!-- Tomcat -->
     <suppress>
-        <notes>
-            Embedded Tomcat used by Spring Boot only.
-            No direct Tomcat APIs, admin console, or external exposure.
-            CVEs reported are upstream/embedded false positives.
-        </notes>
+        <notes>Embedded Tomcat used by Spring Boot</notes>
         <packageUrl>pkg:maven/org.apache.tomcat.embed/tomcat-embed-core</packageUrl>
     </suppress>
 
     <suppress>
-        <notes>Embedded Tomcat websocket module (Spring Boot managed)</notes>
+        <notes>Tomcat websocket module</notes>
         <packageUrl>pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket</packageUrl>
     </suppress>
 
     <suppress>
-        <notes>Embedded Tomcat EL module (Spring Boot managed)</notes>
+        <notes>Tomcat EL module</notes>
         <packageUrl>pkg:maven/org.apache.tomcat.embed/tomcat-embed-el</packageUrl>
     </suppress>
 
-    <!-- Swagger UI / Dompurify (Frontend Library) -->
+    <!-- Swagger UI DOMPurify -->
     <suppress>
-        <notes>
-            DOMPurify is bundled inside Swagger UI frontend assets.
-            Backend does not directly process untrusted HTML rendering.
-        </notes>
+        <notes>DOMPurify inside Swagger UI frontend bundle</notes>
         <packageUrl>pkg:javascript/DOMPurify</packageUrl>
     </suppress>
 
