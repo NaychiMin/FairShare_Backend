@@ -52,8 +52,7 @@ jobs:
       with:
         images: ghcr.io/naychimin/fairshare_backend
         tags: |
-          type=sha
-          latest
+          type=sha,format=short
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -87,7 +86,7 @@ jobs:
           git pull origin main
 
           # Set IMAGE_TAG environment variable for compose file
-          export IMAGE_TAG=sha-${{ github.event.workflow_run.head_sha }}
+          export IMAGE_TAG=${{ needs.build-and-push.outputs.image-tag }}
           
           # Pull and start containers
           docker-compose --env-file .env.dev -f docker-compose.dev.yml pull
