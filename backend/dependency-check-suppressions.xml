@@ -23,4 +23,14 @@
         <cve>CVE-2026-22732</cve>
     </suppress>
 
+    <!-- Spring Boot CVE false positive -->
+    <suppress>
+        <notes>
+            Spring Boot / Spring Web CVE flagged by Dependency-Check.
+            Application is stateless JWT REST API with no session-based authentication or form login.
+            Vulnerable code paths are not applicable in this architecture.
+        </notes>
+        <cve>CVE-2026-22731</cve>
+    </suppress>
+
 </suppressions>
