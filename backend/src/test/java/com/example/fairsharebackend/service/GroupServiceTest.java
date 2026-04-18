@@ -57,6 +57,9 @@ class GroupServiceTest {
     @Mock
     private BalanceService balanceService;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private GroupServiceImpl groupService;
 
@@ -229,6 +232,8 @@ class GroupServiceTest {
     @Test
     @DisplayName("Archive group successfully when requester is admin")
     void shouldArchiveGroupSuccessfully() {
+        when(userRepository.findByEmail(requesterEmail))
+            .thenReturn(Optional.of(user));
         when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
         when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
                 groupId, requesterEmail, "GROUP_ADMIN", "Active"
@@ -308,6 +313,10 @@ class GroupServiceTest {
         GroupMembership targetMembership = new GroupMembership();
         targetMembership.setUser(new User());
         targetMembership.setRole(memberRole);
+        targetMembership.setGroup(group);
+
+        when(userRepository.findByEmail(requesterEmail))
+            .thenReturn(Optional.of(user));
 
         when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
         when(groupMembershipRepository.existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(

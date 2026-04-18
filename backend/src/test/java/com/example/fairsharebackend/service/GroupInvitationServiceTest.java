@@ -44,6 +44,9 @@ class GroupInvitationServiceTest {
     @InjectMocks
     private GroupInvitationServiceImpl groupInvitationService;
 
+    @Mock
+    private NotificationService notificationService;
+
     private Group group;
     private User requester;
     private User invitedUser;

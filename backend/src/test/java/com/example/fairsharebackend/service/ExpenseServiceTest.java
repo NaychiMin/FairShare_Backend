@@ -67,6 +67,9 @@ class ExpenseServiceTest {
     @Mock
     private BadgeEngine badgeEngine;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private ExpenseServiceImpl expenseService;
 

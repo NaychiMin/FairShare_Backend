@@ -220,8 +220,6 @@ public class GroupServiceImpl implements GroupService {
         );
 
         groupMembershipRepository.delete(membership);
-
-        groupMembershipRepository.delete(membership);
     }
 
     @Override
