@@ -51,7 +51,9 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ghcr.io/naychimin/fairshare_backend
-        tags: latest
+        tags: |
+          type=sha
+          latest
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -83,10 +85,12 @@ jobs:
           
           # Pull latest compose file
           git pull origin main
+
+          # Set IMAGE_TAG environment variable for compose file
+          export IMAGE_TAG=sha-${{ github.event.workflow_run.head_sha }}
           
           # Pull and start containers
-          docker-compose --env-file .env.dev -f docker-compose.dev.yml down
           docker-compose --env-file .env.dev -f docker-compose.dev.yml pull
-          docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d --force-recreate --remove-orphans --pull always
+          docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
           
-          echo "Dev deployment completed"
+          echo "Backend deployed version: $IMAGE_TAG"
