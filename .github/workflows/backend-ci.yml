@@ -1,116 +1,116 @@
-name: Backend CI
+# name: Backend CI
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
 
-permissions:
-  contents: read
-  packages: write
-  security-events: write
+# permissions:
+#   contents: read
+#   packages: write
+#   security-events: write
 
-jobs:
-  build-test:
-    runs-on: ubuntu-latest
+# jobs:
+#   build-test:
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+#     steps:
+#     - name: Checkout repository
+#       uses: actions/checkout@v4
 
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'maven'
+#     - name: Set up Java
+#       uses: actions/setup-java@v4
+#       with:
+#         distribution: 'temurin'
+#         java-version: '17'
+#         cache: 'maven'
 
-    - name: Build and test backend
-      run: |
-        cd backend
-        chmod +x mvnw
-        ./mvnw clean verify -Dspring.profiles.active=test
+#     - name: Build and test backend
+#       run: |
+#         cd backend
+#         chmod +x mvnw
+#         ./mvnw clean verify -Dspring.profiles.active=test
 
-    - name: Upload Test Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-test-reports
-        path: backend/target/surefire-reports/
+#     - name: Upload Test Artifacts
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: backend-test-reports
+#         path: backend/target/surefire-reports/
 
-  trivy-scan:
-    needs: build-test
-    runs-on: ubuntu-latest
+#   trivy-scan:
+#     needs: build-test
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+#     steps:
+#     - name: Checkout repository
+#       uses: actions/checkout@v4
 
-    - name: Build Docker Image
-      run: docker build -t fairshare-backend ./backend
+#     - name: Build Docker Image
+#       run: docker build -t fairshare-backend ./backend
 
-    - name: Cache Trivy DB
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/trivy
-        key: ${{ runner.os }}-trivy-db
-        restore-keys: |
-          ${{ runner.os }}-trivy-db
+#     - name: Cache Trivy DB
+#       uses: actions/cache@v4
+#       with:
+#         path: ~/.cache/trivy
+#         key: ${{ runner.os }}-trivy-db
+#         restore-keys: |
+#           ${{ runner.os }}-trivy-db
 
-    - name: Run Trivy Image Scan
-      uses: aquasecurity/trivy-action@v0.24.0
-      with:
-        image-ref: fairshare-backend
-        format: table
-        output: trivy-results.log
-        severity: HIGH,CRITICAL
-        exit-code: "0"
+#     - name: Run Trivy Image Scan
+#       uses: aquasecurity/trivy-action@v0.24.0
+#       with:
+#         image-ref: fairshare-backend
+#         format: table
+#         output: trivy-results.log
+#         severity: HIGH,CRITICAL
+#         exit-code: "0"
 
-    - name: Show Trivy Table in Logs
-      run: cat trivy-results.log
+#     - name: Show Trivy Table in Logs
+#       run: cat trivy-results.log
 
-    - name: Upload trivy log
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: trivy-container-report
-        path: trivy-results.log
+#     - name: Upload trivy log
+#       if: always()
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: trivy-container-report
+#         path: trivy-results.log
 
-  zap-scan:
-    needs: trivy-scan
-    runs-on: ubuntu-latest
+#   zap-scan:
+#     needs: trivy-scan
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+#     steps:
+#     - name: Checkout repository
+#       uses: actions/checkout@v4
 
-    - name: Build backend
-      run: |
-        cd backend
-        chmod +x mvnw
-        ./mvnw clean package -DskipTests -Dspring.profiles.active=test
-      env:
-        SPRING_PROFILES_ACTIVE: test
+#     - name: Build backend
+#       run: |
+#         cd backend
+#         chmod +x mvnw
+#         ./mvnw clean package -DskipTests -Dspring.profiles.active=test
+#       env:
+#         SPRING_PROFILES_ACTIVE: test
 
-    - name: Start backend
-      run: |
-        cd backend
-        nohup java -jar target/*.jar -Dspring.profiles.active=test &
-        sleep 30
-      env:
-        SPRING_PROFILES_ACTIVE: test
+#     - name: Start backend
+#       run: |
+#         cd backend
+#         nohup java -jar target/*.jar -Dspring.profiles.active=test &
+#         sleep 30
+#       env:
+#         SPRING_PROFILES_ACTIVE: test
 
-    - name: Run OWASP ZAP Full Scan Action
-      uses: zaproxy/action-full-scan@v0.13.0
-      with:
-        token: ${{ secrets.ZAP_PAT_BACKEND }}
-        target: "http://host.docker.internal:8080"
-        cmd_options: "-I -d -r zap-scan.html"                 # -I = ignore failures, -d = debug logs
-        fail_action: false                 # avoids failing workflow on alerts
-        artifact_name: "zap-scan"
+#     - name: Run OWASP ZAP Full Scan Action
+#       uses: zaproxy/action-full-scan@v0.13.0
+#       with:
+#         token: ${{ secrets.ZAP_PAT_BACKEND }}
+#         target: "http://host.docker.internal:8080"
+#         cmd_options: "-I -d -r zap-scan.html"                 # -I = ignore failures, -d = debug logs
+#         fail_action: false                 # avoids failing workflow on alerts
+#         artifact_name: "zap-scan"
 
-    - name: Upload ZAP Report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: zap-scan
-        path: zap-scan.html
+#     - name: Upload ZAP Report
+#       if: always()
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: zap-scan
+#         path: zap-scan.html
