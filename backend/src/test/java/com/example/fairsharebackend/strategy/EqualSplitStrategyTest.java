@@ -146,8 +146,10 @@ class EqualSplitStrategyTest {
 
         // ASSERT
         // 100/4 = 25.00 exactly, no rounding needed
-        assertThat(splits).allMatch(split -> 
-            split.getShareAmount().equals(new BigDecimal("25.00")));
+        assertThat(splits).isNotEmpty();
+
+        assertThat(splits).allMatch(split ->
+                split.getShareAmount().compareTo(new BigDecimal("25.00")) == 0);
     }
 
     @Test

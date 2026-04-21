@@ -4,7 +4,7 @@ import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.request.GroupCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.request.GroupUpdateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.GroupActionStatusResponse;
-import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto; // new
+import com.example.fairsharebackend.entity.dto.response.GroupSummaryResponseDto;
 import com.example.fairsharebackend.entity.dto.response.UserSummaryResponseDto;
 import com.example.fairsharebackend.exception.ResourceNotFoundException;
 import com.example.fairsharebackend.entity.dto.request.UserRegisterRequestDto;
@@ -82,7 +82,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public Group createGroup(GroupCreateRequestDto dto) {
-        log.error("Create new group with name :: {}", dto.getGroupName());
+        log.error("Create new group with name");
         try {
             Group group = this.groupMapper.toEntity(dto);
             //User user = userRepository.getByName(dto.getAdmin());

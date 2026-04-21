@@ -56,14 +56,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByEmail(String email) {
-        log.info("Finding User by email:: {}", email);
+        log.info("Finding User by email");
         return userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
     }
 
     @Override
     @Transactional
     public UserLoginResponseDto login(UserLoginRequestDto request, HttpServletResponse response) {
-        log.error("Logging in with email :: {}", request.getEmail());
+        log.info("User login attempt");
         try {
             String email = this.normaliseEmail(request.getEmail());
 
@@ -126,7 +126,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User updateUser(UUID userId, UserUpdateRequestDto dto) {
-        log.info("Updating user details for userId :: {}", userId);
+        log.info("Updating user details for userId");
 
         try {
             this.validatedUpdateRequestDto(userId, dto);
@@ -156,7 +156,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto updateUserAndReturnDto(UUID userId, UserUpdateRequestDto dto) {
-        log.info("Updating user details for userId [DTO]:: {}", userId);
+        log.info("Updating user details for userId");
         User saved = updateUser(userId, dto);
         return this.userMapper.toDto(saved);
     }
@@ -180,7 +180,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updatePassword(UUID userId, UserUpdatePasswordRequestDto dto) {
-        log.info("Updating password for userId :: {}", userId);
+        log.info("Updating password for userId");
 
         try {
             User user = userRepository.findById(userId)

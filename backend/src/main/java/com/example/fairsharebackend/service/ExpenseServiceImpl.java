@@ -269,7 +269,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public String deleteExpense(UUID expenseId, String requesterEmail) {
-        Expense exp = expenseRepository.findById(expenseId).get();
+        Expense exp = expenseRepository.findById(expenseId)
+            .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + expenseId));
         exp.setDeleteInd(true);
         expenseRepository.save(exp);
         return "done";
