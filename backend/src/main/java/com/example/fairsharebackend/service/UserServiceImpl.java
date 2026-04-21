@@ -40,6 +40,8 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
+    private static final String KEY_EXCEPTION = "Exception :: {}";
+
     public UserServiceImpl(
             UserRepository userRepository,
             UserMapper userMapper,
@@ -88,10 +90,10 @@ public class UserServiceImpl implements UserService {
             res.setJwt(jwt);
             return res;
         } catch (BadCredentialsException e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
             throw new BadCredentialsException("Invalid credentials.");
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
             throw new RuntimeException("Unable to log in at this time. Please try again later.");
         }
     }
@@ -113,11 +115,11 @@ public class UserServiceImpl implements UserService {
             user.setUserCredential(cred);
             return userRepository.save(user);
         } catch (BadCredentialsException e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
 
             throw e;
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
 
             throw new RuntimeException("Unable to register at this time. Please try again later.");
         }
@@ -144,11 +146,11 @@ public class UserServiceImpl implements UserService {
             userMapper.updateFromDto(dto, user);
             return userRepository.save(user);
         } catch (BadCredentialsException | EntityNotFoundException e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
             throw e;
 
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
             throw new RuntimeException("Unable to update user at this time.");
         }
     }
@@ -210,10 +212,10 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
 
         } catch (BadCredentialsException | EntityNotFoundException e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
             throw new RuntimeException("Unable to update password at this time.");
         }
     }

@@ -42,6 +42,7 @@ public class GroupActivity {
 
 
     public GroupActivity() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
 

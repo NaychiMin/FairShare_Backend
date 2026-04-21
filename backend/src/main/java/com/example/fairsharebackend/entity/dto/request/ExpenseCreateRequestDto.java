@@ -37,6 +37,7 @@ public class ExpenseCreateRequestDto {
     private List<UUID> participantUserIds; // Users who will split (includes payer)
 
     public ExpenseCreateRequestDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getGroupId() {

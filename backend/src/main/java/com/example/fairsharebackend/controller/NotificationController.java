@@ -43,7 +43,7 @@ public class NotificationController {
     }
 
     @PutMapping("/{notificationId}/read")
-    public ResponseEntity<?> markAsRead(
+    public ResponseEntity<Void> markAsRead(
             @PathVariable UUID notificationId,
             @RequestParam String requesterEmail
     ) {

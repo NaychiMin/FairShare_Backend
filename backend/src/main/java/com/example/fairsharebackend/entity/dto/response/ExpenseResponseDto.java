@@ -30,6 +30,7 @@ public class ExpenseResponseDto {
     private List<ExpenseSplitResponseDto> splits;
 
     public ExpenseResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getExpenseId() {

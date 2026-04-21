@@ -19,6 +19,7 @@ public class Role {
     private String scope;
 
     public Role() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getRoleId() {

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/feed")
 public class FeedController {
-    private static final Logger log = LoggerFactory.getLogger(FeedController.class);
     private final FeedEntryService feedEntryService;
     public FeedController(
             FeedEntryService feedEntryService

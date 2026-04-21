@@ -17,6 +17,7 @@ public class FeedEntryFilterRequestDto {
     private List<FeedEntryType> types;
 
     public FeedEntryFilterRequestDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getUserId() {

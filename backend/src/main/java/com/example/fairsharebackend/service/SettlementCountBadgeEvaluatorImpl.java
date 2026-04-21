@@ -84,8 +84,8 @@ public class SettlementCountBadgeEvaluatorImpl implements BadgeEvaluator {
     private Integer getBadgeCount(String ruleConfig) {
         try {
             JsonNode config = objectMapper.readTree(ruleConfig);
-            return config.has("count") ?
-                    config.get("count").asInt() : 0;
+            return config.has(COUNT_KEY) ?
+                    config.get(COUNT_KEY).asInt() : 0;
         } catch (JsonProcessingException e) {
             throw new EvaluatorException(e.getMessage());
         }

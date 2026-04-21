@@ -52,6 +52,8 @@ public class GroupServiceImpl implements GroupService {
     private static final String STATUS_ARCHIVED = "Archived";
     private static final String ROLE_GROUP_ADMIN = "GROUP_ADMIN";;
     private static final String ROLE_GROUP_MEMBER = "GROUP_MEMBER";
+    private static final String USER_NOT_FOUND = "User not found";
+    private static final String GROUP_NOT_FOUND = "Group not found";
 
 
     public GroupServiceImpl(
@@ -94,8 +96,8 @@ public class GroupServiceImpl implements GroupService {
             groupMembership.setGroup(group);
             groupMembership.setUser(user);
             groupMembership.setJoinedAt(LocalDateTime.now());
-            groupMembership.setMembershipStatus("Active");
-            groupMembership.setRole(roleRepository.getByName("GROUP_ADMIN"));
+            groupMembership.setMembershipStatus(STATUS_ACTIVE);
+            groupMembership.setRole(roleRepository.getByName(ROLE_GROUP_ADMIN));
             groupRepository.save(group);
             groupMembershipRepository.save(groupMembership);
             return group;
@@ -114,7 +116,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<GroupSummaryResponseDto> getAllGroups(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         List<GroupMembership> memberships =
                 groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
@@ -139,7 +141,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<GroupSummaryResponseDto> getArchivedGroups(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         List<GroupMembership> memberships =
                 groupMembershipRepository.findAllByUserOrderByJoinedAtDesc(user);
@@ -175,7 +177,7 @@ public class GroupServiceImpl implements GroupService {
         groupRepository.save(group);
 
         User actor = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         List<User> members = getActiveGroupUsers(group.getGroupId());
 
@@ -193,10 +195,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void leaveGroup(UUID groupId, String requesterEmail) {
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                .orElseThrow(() -> new RuntimeException(GROUP_NOT_FOUND));
 
         User requester = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
 
         GroupMembership membership = groupMembershipRepository
                 .findByGroup_GroupIdAndUser_UserIdAndMembershipStatus(groupId, requester.getUserId(), STATUS_ACTIVE)
@@ -225,7 +227,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void unarchiveGroup(UUID groupId, String requesterEmail) {
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                .orElseThrow(() -> new RuntimeException(GROUP_NOT_FOUND));
 
         boolean isAdmin = groupMembershipRepository
                 .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
@@ -243,7 +245,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Group updateGroup(UUID groupId, GroupUpdateRequestDto dto, String requesterEmail) {
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                .orElseThrow(() -> new RuntimeException(GROUP_NOT_FOUND));
 
         User requester = userRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
@@ -252,7 +254,7 @@ public class GroupServiceImpl implements GroupService {
         log.info("group id={}", group.getGroupId());
 
         boolean isAdmin = groupMembershipRepository
-                .existsByGroupAndUserAndRole_NameAndMembershipStatus(group, requester, "GROUP_ADMIN", "Active");
+                .existsByGroupAndUserAndRole_NameAndMembershipStatus(group, requester, ROLE_GROUP_ADMIN, STATUS_ACTIVE);
 
         if (!isAdmin) {
             throw new RuntimeException("Not authorized to edit this group");
@@ -269,7 +271,7 @@ public class GroupServiceImpl implements GroupService {
 
 
         User actor = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         List<User> members = getActiveGroupUsers(group.getGroupId());
 
@@ -311,7 +313,7 @@ public class GroupServiceImpl implements GroupService {
 
 
         User actor = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         List<User> members = getActiveGroupUsers(group.getGroupId());
 
@@ -350,10 +352,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Group getGroupById(UUID groupId, String requesterEmail) {
         User requester = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
         
         boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, requester.getUserId());
         if (!isMember) {
@@ -366,10 +368,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<UserSummaryResponseDto> getGroupMembers(UUID groupId, String requesterEmail) {
         User requester = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
         
         boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, requester.getUserId());
         if (!isMember) {
@@ -396,7 +398,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void assignAdmin(UUID groupId, UUID userId, String requesterEmail) {
         groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                .orElseThrow(() -> new RuntimeException(GROUP_NOT_FOUND));
 
         boolean requesterIsAdmin = groupMembershipRepository
                 .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
@@ -425,7 +427,7 @@ public class GroupServiceImpl implements GroupService {
         groupMembershipRepository.save(targetMembership);
 
         User actor = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         List<User> members = getActiveGroupUsers(groupId);
 
@@ -442,7 +444,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void revokeAdmin(UUID groupId, UUID userId, String requesterEmail) {
         groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                .orElseThrow(() -> new RuntimeException(GROUP_NOT_FOUND));
 
         boolean requesterIsAdmin = groupMembershipRepository
                 .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
@@ -504,10 +506,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<GroupMemberActionStatusResponse> getGroupMemberActionStatuses(UUID groupId, String requesterEmail) {
         User requester = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
 
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
 
         boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, requester.getUserId());
         if (!isMember) {
@@ -551,10 +553,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void removeGroupMember(UUID groupId, UUID userId, String requesterEmail) {
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                .orElseThrow(() -> new RuntimeException(GROUP_NOT_FOUND));
 
         User requester = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
 
         boolean requesterIsAdmin = groupMembershipRepository
                 .existsByGroup_GroupIdAndUser_EmailAndRole_NameAndMembershipStatus(
@@ -622,7 +624,7 @@ public class GroupServiceImpl implements GroupService {
 
     private Group getGroupOrThrow(UUID groupId) {
         return groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                .orElseThrow(() -> new RuntimeException(GROUP_NOT_FOUND));
     }
 
     private void validateAdmin(UUID groupId, String requesterEmail, String action) {

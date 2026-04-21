@@ -29,6 +29,9 @@ public class SettlementService {
     private final GroupActivityRepository groupActivityRepository;
     private final NotificationService notificationService;
 
+    private static final String USER_NOT_FOUND = "User not found";
+    private static final String GROUP_NOT_FOUND = "Group not found";
+
     public SettlementService(
             SettlementRepository settlementRepository,
             UserRepository userRepository,
@@ -54,10 +57,10 @@ public class SettlementService {
     public SettlementResponseDto createSettlement(SettlementCreateRequestDto request, String requesterEmail) {
         
         User creator = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         
         Group group = groupRepository.findById(request.getGroupId())
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
         
         if (!groupMembershipRepository.existsByGroupAndUser_UserId(group, creator.getUserId())) {
             throw new RuntimeException("User is not a member of this group");
@@ -132,10 +135,10 @@ public class SettlementService {
     public List<SettlementResponseDto> getUserSettlementsInGroup(UUID groupId, String requesterEmail) {
     
         User user = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
         
         if (!groupMembershipRepository.existsByGroupAndUser_UserId(group, user.getUserId())) {
             throw new RuntimeException("User is not a member of this group");
@@ -152,10 +155,10 @@ public class SettlementService {
     public List<SettlementResponseDto> getAllGroupSettlements(UUID groupId, String requesterEmail) {
         
         User user = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
         
         if (!groupMembershipRepository.existsByGroupAndUser_UserId(group, user.getUserId())) {
             throw new RuntimeException("User is not a member of this group");
@@ -172,7 +175,7 @@ public class SettlementService {
     public SettlementResponseDto getSettlementById(UUID settlementId, String requesterEmail) {
         
         User user = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         
         Settlement settlement = settlementRepository.findById(settlementId)
                 .orElseThrow(() -> new ResourceNotFoundException("Settlement not found"));
@@ -189,7 +192,7 @@ public class SettlementService {
     public void deleteSettlement(UUID settlementId, String requesterEmail) {
         
         User deleter = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         
         Settlement settlement = settlementRepository.findById(settlementId)
                 .orElseThrow(() -> new ResourceNotFoundException("Settlement not found"));

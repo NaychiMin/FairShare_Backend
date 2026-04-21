@@ -10,6 +10,7 @@ public class UserSummaryResponseDto {
 
     // Default constructor
     public UserSummaryResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     // Getters and setters

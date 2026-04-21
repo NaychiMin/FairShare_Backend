@@ -9,6 +9,7 @@ public class GroupUpdatedEvent {
     private String newValue;
 
     public GroupUpdatedEvent() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public Group getGroup() {

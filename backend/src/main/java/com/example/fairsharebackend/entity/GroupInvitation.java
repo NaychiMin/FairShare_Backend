@@ -36,7 +36,9 @@ public class GroupInvitation {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public GroupInvitation() {}
+    public GroupInvitation() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
+    }
 
     public UUID getInvitationId() {
         return invitationId;

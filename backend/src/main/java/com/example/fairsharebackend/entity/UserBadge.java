@@ -29,6 +29,7 @@ public class UserBadge {
     private Group group;
 
     public UserBadge() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getUserBadgeId() {

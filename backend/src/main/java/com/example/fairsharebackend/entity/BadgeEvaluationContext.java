@@ -12,6 +12,7 @@ public class BadgeEvaluationContext {
     private Map<String, Object> metadata;
 
     public BadgeEvaluationContext() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public Group getGroup() {

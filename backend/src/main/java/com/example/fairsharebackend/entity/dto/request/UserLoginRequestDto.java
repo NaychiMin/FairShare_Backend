@@ -10,6 +10,7 @@ public class UserLoginRequestDto {
     private String password;
 
     public UserLoginRequestDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public String getEmail() {

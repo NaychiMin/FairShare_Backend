@@ -48,6 +48,7 @@ public class ExpenseSplit {
     }
 
     public ExpenseSplit() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getSplitId() {

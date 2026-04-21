@@ -23,6 +23,7 @@ public class UserRegisterRequestDto implements UserPasswordConfirmable {
     private String password2;
 
     public UserRegisterRequestDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public String getEmail() {

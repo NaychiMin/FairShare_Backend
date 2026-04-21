@@ -48,6 +48,7 @@ public class Settlement {
     private LocalDateTime updatedAt;
     
     public Settlement() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
     
     @PrePersist

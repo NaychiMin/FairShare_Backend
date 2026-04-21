@@ -12,6 +12,7 @@ public class UserBadgeResponseDto {
     private LocalDateTime earnedAt;
 
     public UserBadgeResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public String getBadgeName() {
