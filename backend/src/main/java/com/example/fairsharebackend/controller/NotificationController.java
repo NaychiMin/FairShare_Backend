@@ -52,7 +52,7 @@ public class NotificationController {
     }
 
     @PutMapping("/read-all")
-    public ResponseEntity<?> markAllAsRead(
+    public ResponseEntity<Void> markAllAsRead(
             @RequestParam String requesterEmail
     ) {
         notificationService.markAllAsRead(requesterEmail);
