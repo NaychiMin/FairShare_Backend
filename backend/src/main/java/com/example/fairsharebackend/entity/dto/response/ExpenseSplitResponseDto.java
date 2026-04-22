@@ -13,6 +13,7 @@ public class ExpenseSplitResponseDto {
     private Boolean isSettled;
 
     public ExpenseSplitResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getSplitId() {

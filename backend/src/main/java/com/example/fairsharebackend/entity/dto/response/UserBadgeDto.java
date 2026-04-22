@@ -17,6 +17,7 @@ public class UserBadgeDto {
     private GroupSummaryResponseDto group;
 
     public UserBadgeDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getUserBadgeId() {

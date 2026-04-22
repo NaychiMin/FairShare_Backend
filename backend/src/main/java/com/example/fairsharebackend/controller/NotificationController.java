@@ -43,7 +43,7 @@ public class NotificationController {
     }
 
     @PutMapping("/{notificationId}/read")
-    public ResponseEntity<?> markAsRead(
+    public ResponseEntity<Void> markAsRead(
             @PathVariable UUID notificationId,
             @RequestParam String requesterEmail
     ) {
@@ -52,7 +52,7 @@ public class NotificationController {
     }
 
     @PutMapping("/read-all")
-    public ResponseEntity<?> markAllAsRead(
+    public ResponseEntity<Void> markAllAsRead(
             @RequestParam String requesterEmail
     ) {
         notificationService.markAllAsRead(requesterEmail);

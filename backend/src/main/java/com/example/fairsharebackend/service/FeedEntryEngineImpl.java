@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 
 @Service
 public class FeedEntryEngineImpl implements FeedEntryEngine {
+
+    public static final String KEY_EXCEPTION = "Exception :: {}";
+
     private static final Logger log = LoggerFactory.getLogger(FeedEntryEngineImpl.class);
     private final FeedEntryRepository feedEntryRepository;
     public FeedEntryEngineImpl(
@@ -68,7 +71,7 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
             feedEntryRepository.save(feedEntry);
             feedEntryRepository.flush();
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
         }
     }
 
@@ -83,7 +86,7 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
             feedEntryRepository.save(feedEntry);
             feedEntryRepository.flush();
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
         }
     }
 
@@ -101,7 +104,7 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
             feedEntryRepository.save(feedEntry);
             feedEntryRepository.flush();
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
         }
     }
 
@@ -118,7 +121,7 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
             feedEntryRepository.save(feedEntry);
             feedEntryRepository.flush();
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
+            log.error(KEY_EXCEPTION, e.getMessage());
         }
     }
 }

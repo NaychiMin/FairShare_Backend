@@ -9,6 +9,7 @@ public class GroupBalanceResponseDto {
     private List<UserBalanceDto> youOwe; 
     
     public GroupBalanceResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
     
     public BigDecimal getNetBalance() {

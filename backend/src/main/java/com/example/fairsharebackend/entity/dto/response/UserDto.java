@@ -9,6 +9,7 @@ public class UserDto {
     private String status = "A";
 
     public UserDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getUserId() {

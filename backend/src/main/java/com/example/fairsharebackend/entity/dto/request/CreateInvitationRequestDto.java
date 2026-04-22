@@ -7,7 +7,9 @@ public class CreateInvitationRequestDto {
     @Email(message = "Invalid email format")
     private String invitedEmail; // optional, null means link invite
 
-    public CreateInvitationRequestDto() {}
+    public CreateInvitationRequestDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
+    }
 
     public String getInvitedEmail() {
         return invitedEmail;

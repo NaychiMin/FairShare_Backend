@@ -31,6 +31,7 @@ public class GroupMembership {
     private Group group;
 
     public GroupMembership() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getGroupMembershipId() {

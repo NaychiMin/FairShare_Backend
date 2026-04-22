@@ -20,6 +20,7 @@ public class FeedEntryResponseDto {
     private LocalDateTime createdDate;
 
     public FeedEntryResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getFeedEntryId() {

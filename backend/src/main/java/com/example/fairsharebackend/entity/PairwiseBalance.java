@@ -39,6 +39,7 @@ public class PairwiseBalance {
     
     // Default constructor
     public PairwiseBalance() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
     
     // Getters and Setters

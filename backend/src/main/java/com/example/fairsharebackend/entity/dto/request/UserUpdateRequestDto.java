@@ -5,6 +5,7 @@ public class UserUpdateRequestDto {
     private String email;
 
     public UserUpdateRequestDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public String getName() {

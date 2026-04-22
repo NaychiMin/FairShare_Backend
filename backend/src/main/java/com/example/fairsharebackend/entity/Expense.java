@@ -67,6 +67,7 @@ public class Expense {
     }
 
     public Expense() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getExpenseId() {
@@ -178,7 +179,8 @@ public class Expense {
     }
 
     public Boolean setDeleteInd(Boolean deleteInd) {
-        return this.deleteInd = deleteInd;
+        this.deleteInd = deleteInd;
+        return deleteInd;
     }
 
     public Boolean getDeleteInd() {

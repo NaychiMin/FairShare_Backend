@@ -7,6 +7,7 @@ public class UserLoginResponseDto {
     private String jwt;
 
     public UserLoginResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UserDto getUser() {

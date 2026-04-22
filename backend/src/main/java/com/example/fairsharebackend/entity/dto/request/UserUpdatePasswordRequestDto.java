@@ -17,6 +17,7 @@ public class UserUpdatePasswordRequestDto implements UserPasswordConfirmable {
     String password2;
 
     public UserUpdatePasswordRequestDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public String getOldPassword() {

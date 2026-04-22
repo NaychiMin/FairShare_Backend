@@ -40,6 +40,7 @@ public class User {
     private Set<UserBadge> userBadges;
 
     public User() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getUserId() {

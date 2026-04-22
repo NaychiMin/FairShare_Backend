@@ -32,7 +32,7 @@ public class AuthController {
     }
 
     @GetMapping
-    public ResponseEntity<?> test() {
+    public ResponseEntity<String> test() {
         return ResponseEntity.ok("In auth!");
     }
 

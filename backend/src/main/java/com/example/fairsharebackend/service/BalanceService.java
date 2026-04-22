@@ -19,6 +19,8 @@ public class BalanceService {
     private final ApplicationEventPublisher eventPublisher;
     private final PairwiseBalanceRepository balanceRepository;
 
+    private static final String OWES = " owes ";
+
     public BalanceService(ApplicationEventPublisher eventPublisher, PairwiseBalanceRepository balanceRepository) {
         this.eventPublisher = eventPublisher;
         this.balanceRepository = balanceRepository;
@@ -71,7 +73,7 @@ public class BalanceService {
                 balance.setLastUpdated(LocalDateTime.now());
                 balance.setIsSettled(false);
                 balanceRepository.save(balance);
-                System.out.println("[DEBUG] Updated balance: " + debtor.getName() + " owes " + creditor.getName() + " $" + newAmount);
+                System.out.println("[DEBUG] Updated balance: " + debtor.getName() + OWES + creditor.getName() + " $" + newAmount);
             } else {
                 // If amount becomes negative means overpaid, so swap direction
                 balanceRepository.delete(balance);
@@ -103,7 +105,7 @@ public class BalanceService {
                 reverse.setLastUpdated(LocalDateTime.now());
                 reverse.setIsSettled(false);
                 balanceRepository.save(reverse);
-                System.out.println("[DEBUG] Reduced reverse balance: " + creditor.getName() + " owes " + debtor.getName() + " $" + newReverseAmount);
+                System.out.println("[DEBUG] Reduced reverse balance: " + creditor.getName() + OWES + debtor.getName() + " $" + newReverseAmount);
             } else {
                 // Reverse went negative means overnet, so create new balance in original direction
                 balanceRepository.delete(reverse);
@@ -122,7 +124,7 @@ public class BalanceService {
             newBalance.setLastUpdated(LocalDateTime.now());
             newBalance.setIsSettled(false);
             balanceRepository.save(newBalance);
-            System.out.println("[DEBUG] Created new balance: " + debtor.getName() + " owes " + creditor.getName() + " $" + amount);
+            System.out.println("[DEBUG] Created new balance: " + debtor.getName() + OWES + creditor.getName() + " $" + amount);
         } else {
             // If amount is negative and no balances exist, this means trying to setlle non existent debt
             throw new RuntimeException("[DEBUG] Cannot settle non-existent debt");

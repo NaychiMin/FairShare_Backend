@@ -6,6 +6,7 @@ public class UserUpdatedResponseDto {
     private UserDto user;
 
     public UserUpdatedResponseDto() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UserDto getUser() {

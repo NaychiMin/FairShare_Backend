@@ -38,6 +38,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
 
+    public static final String GROUP_NOT_FOUND = "Group not found";
+
     public ExpenseServiceImpl(
             ExpenseRepository expenseRepository,
             ExpenseSplitRepository expenseSplitRepository,
@@ -76,7 +78,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         System.out.println("Creator name: " + creator.getName());
 
         Group group = groupRepository.findById(request.getGroupId())
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
 
         boolean isCreatorMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, creator.getUserId());
         if (!isCreatorMember) {
@@ -150,7 +152,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Creator not found with email: " + requesterEmail));
 
         Group group = groupRepository.findById(request.getGroupId())
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
 
         // Validate Creator Membership
         if (!groupMembershipRepository.existsByGroupAndUser_UserId(group, creator.getUserId())) {
@@ -269,7 +271,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public String deleteExpense(UUID expenseId, String requesterEmail) {
-        Expense exp = expenseRepository.findById(expenseId).get();
+        Expense exp = expenseRepository.findById(expenseId)
+            .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + expenseId));
         exp.setDeleteInd(true);
         expenseRepository.save(exp);
         return "done";
@@ -282,7 +285,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + requesterEmail));
 
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(GROUP_NOT_FOUND));
 
         boolean isMember = groupMembershipRepository.existsByGroupAndUser_UserId(group, user.getUserId());
         if (!isMember) {

@@ -39,6 +39,7 @@ public class Badge {
     private String ruleConfig;
 
     public Badge() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getBadgeId() {

@@ -16,6 +16,7 @@ public class StaticRole {
     private String name;
 
     public StaticRole() {
+        // Required by JPA (Hibernate) for entity instantiation via reflection
     }
 
     public UUID getStaticRoleId() {
