@@ -104,8 +104,8 @@ jobs:
       with:
         token: ${{ secrets.ZAP_PAT_BACKEND }}
         target: "http://143.198.195.225:8080"
-        cmd_options: "-I -d -r zap-scan.html"                 # -I = ignore failures, -d = debug logs
-        fail_action: false                 # avoids failing workflow on alerts
+        cmd_options: "-I -d"
+        fail_action: false
         artifact_name: "zap-scan"
 
     - name: Upload ZAP Report
@@ -113,4 +113,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: zap-scan
-        path: zap-scan.html
+        path: "**/*.html"
