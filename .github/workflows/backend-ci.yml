@@ -107,10 +107,3 @@ jobs:
         cmd_options: "-I -d"
         fail_action: false
         artifact_name: "zap-scan"
-
-    - name: Upload ZAP Report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: zap-scan
-        path: "**/*.html"
