@@ -103,7 +103,7 @@ jobs:
       uses: zaproxy/action-full-scan@v0.13.0
       with:
         token: ${{ secrets.ZAP_PAT_BACKEND }}
-        target: "http://143.198.195.225:8080"
+        target: "http://host.docker.internal:8080"
         cmd_options: "-I -d"
         fail_action: false
         artifact_name: "zap-scan"
