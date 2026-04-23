@@ -14,6 +14,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import java.util.List;
 
 @Configuration
@@ -55,6 +57,33 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .headers(headers -> headers
+                    .contentSecurityPolicy(csp -> csp
+                        .policyDirectives(
+                            "default-src 'self'; " +
+                            "img-src 'self' data:; " +
+                            "script-src 'self'; " +
+                            "style-src 'self' 'unsafe-inline'"
+                        )
+                    )
+
+                    .frameOptions(frame -> frame.deny())
+
+                    .contentTypeOptions(withDefaults())
+
+                    .addHeaderWriter((request, response) -> {
+                        response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+                        response.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+                        response.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+
+                        response.setHeader(
+                            "Permissions-Policy",
+                            "geolocation=(), camera=(), microphone=()"
+                        );
+                    })
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**",
                                 "/v3/api-docs/**",
