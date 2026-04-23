@@ -50,10 +50,9 @@
             Application uses stateless REST API with Spring Security JWT.
             No vulnerable usage patterns applicable.
         </notes>
-
-        <cpe>cpe:2.3:a:springsource:spring_framework:6.2.15:*:*:*:*:*:*:*</cpe>
-        <cpe>cpe:2.3:a:vmware:spring_framework:6.2.15:*:*:*:*:*:*:*</cpe>
-        <cpe>cpe:2.3:a:pivotal_software:spring_framework:6.2.15:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2026-22733</cve>
+        <cve>CVE-2026-22737</cve>
+        <cve>CVE-2026-22735</cve>
     </suppress>
 
 </suppressions>
