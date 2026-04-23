@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User registerUser(UserRegisterRequestDto dto) {
-        log.error("Registering with email :: {}", dto.getEmail());
+        log.info("Registering new user");
         try {
             this.validatedRegisterRequestDto(dto);
             dto.setEmail(this.normaliseEmail(dto.getEmail()));
