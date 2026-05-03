@@ -63,7 +63,7 @@ class BalanceServiceTest {
         when(balanceRepository.findByGroupAndDebtorAndCreditor(group, creditor, debtor))
                 .thenReturn(Optional.empty());
 
-        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("50"));
+        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("50"), false);
 
         verify(balanceRepository).save(any(PairwiseBalance.class));
     }
@@ -77,7 +77,7 @@ class BalanceServiceTest {
         when(balanceRepository.findByGroupAndDebtorAndCreditor(group, debtor, creditor))
                 .thenReturn(Optional.of(existing));
 
-        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("20"));
+        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("20"), false);
 
         assertThat(existing.getAmount()).isEqualByComparingTo("50");
         verify(balanceRepository).save(existing);
@@ -92,7 +92,7 @@ class BalanceServiceTest {
         when(balanceRepository.findByGroupAndDebtorAndCreditor(group, debtor, creditor))
                 .thenReturn(Optional.of(existing));
 
-        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("-50"));
+        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("-50"), false);
 
         verify(balanceRepository).delete(existing);
         verify(eventPublisher).publishEvent(any(GroupFullySettledEvent.class));
@@ -107,7 +107,7 @@ class BalanceServiceTest {
         when(balanceRepository.findByGroupAndDebtorAndCreditor(group, debtor, creditor))
                 .thenReturn(Optional.of(existing));
 
-        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("-50"));
+        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("-50"), false);
 
         verify(balanceRepository).delete(existing);
         verify(balanceRepository).save(any()); // new reverse balance
@@ -124,7 +124,7 @@ class BalanceServiceTest {
         when(balanceRepository.findByGroupAndDebtorAndCreditor(group, creditor, debtor))
                 .thenReturn(Optional.of(reverse));
 
-        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("40"));
+        balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("40"), false);
 
         assertThat(reverse.getAmount()).isEqualByComparingTo("60");
         verify(balanceRepository).save(reverse);
@@ -139,7 +139,7 @@ class BalanceServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("-10"))
+                balanceService.updatePairwiseBalance(group, debtor, creditor, new BigDecimal("-10"), false)
         ).isInstanceOf(RuntimeException.class);
     }
 

@@ -41,13 +41,13 @@ public class BalanceService {
             
             BigDecimal amount = split.getShareAmount();
             
-            updatePairwiseBalance(group, debtor, creditor, amount);
+            updatePairwiseBalance(group, debtor, creditor, amount, true);
         }
     }
 
     // Updates or creates a pairwise balance between debtor and creditor (includes net logic)
     @Transactional
-    public void updatePairwiseBalance(Group group, User debtor, User creditor, BigDecimal amount) {
+    public void updatePairwiseBalance(Group group, User debtor, User creditor, BigDecimal amount, boolean ignorePreviousBalance) {
         
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
             return;
@@ -57,7 +57,7 @@ public class BalanceService {
         Optional<PairwiseBalance> existingBalance = 
             balanceRepository.findByGroupAndDebtorAndCreditor(group, debtor, creditor);
         
-        if (existingBalance.isPresent()) {
+        if (existingBalance.isPresent() && !ignorePreviousBalance) {
             // Debtor already owes creditor - modify it
             PairwiseBalance balance = existingBalance.get();
             BigDecimal newAmount = balance.getAmount().add(amount);
@@ -78,7 +78,7 @@ public class BalanceService {
                 // If amount becomes negative means overpaid, so swap direction
                 balanceRepository.delete(balance);
                 // Create new balance in opposite direction with positive amount
-                updatePairwiseBalance(group, creditor, debtor, newAmount.abs());
+                updatePairwiseBalance(group, creditor, debtor, newAmount.abs(), ignorePreviousBalance);
             }
             return;
         }
@@ -109,7 +109,7 @@ public class BalanceService {
             } else {
                 // Reverse went negative means overnet, so create new balance in original direction
                 balanceRepository.delete(reverse);
-                updatePairwiseBalance(group, debtor, creditor, newReverseAmount.abs());
+                updatePairwiseBalance(group, debtor, creditor, newReverseAmount.abs(), ignorePreviousBalance);
             }
             return;
         }
@@ -195,7 +195,7 @@ public class BalanceService {
         Group group = settlement.getGroup();
         BigDecimal amount = settlement.getAmount();
         
-        updatePairwiseBalance(group, payer, receiver, amount.negate());
+        updatePairwiseBalance(group, payer, receiver, amount.negate(), false);
     }
 
     // Reverse settlement for delete
@@ -206,7 +206,7 @@ public class BalanceService {
         Group group = settlement.getGroup();
         BigDecimal amount = settlement.getAmount();
         
-        updatePairwiseBalance(group, payer, receiver, amount);
+        updatePairwiseBalance(group, payer, receiver, amount, false);
     }
 
     // Update balances when a settlement is edited
@@ -217,10 +217,10 @@ public class BalanceService {
         Group group = settlement.getGroup();
 
         // Reverse the old amount (add it back)
-        updatePairwiseBalance(group, payer, receiver, oldAmount);
+        updatePairwiseBalance(group, payer, receiver, oldAmount, false);
 
         // Apply the new amount (subtract it)
-        updatePairwiseBalance(group, payer, receiver, newAmount.negate());
+        updatePairwiseBalance(group, payer, receiver, newAmount.negate(), false);
     }
 
     @Transactional
