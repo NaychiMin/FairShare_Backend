@@ -28,7 +28,7 @@ public class BalanceService {
 
     // Updates balance when a new expense is created
     @Transactional
-    public void updateBalancesForNewExpense(Expense expense) {
+    public void updateBalancesForNewExpense(Expense expense, boolean ignorePreviousBalance) {
         Group group = expense.getGroup();
         User creditor = expense.getPaidBy();
 
@@ -41,7 +41,7 @@ public class BalanceService {
             
             BigDecimal amount = split.getShareAmount();
             
-            updatePairwiseBalance(group, debtor, creditor, amount, true);
+            updatePairwiseBalance(group, debtor, creditor, amount, ignorePreviousBalance);
         }
     }
 

@@ -160,7 +160,7 @@ class BalanceServiceTest {
 
         expense.setExpenseSplits(List.of(split));
 
-        balanceService.updateBalancesForNewExpense(expense);
+        balanceService.updateBalancesForNewExpense(expense, false);
 
         verify(balanceRepository, times(2))
         .findByGroupAndDebtorAndCreditor(any(), any(), any());
