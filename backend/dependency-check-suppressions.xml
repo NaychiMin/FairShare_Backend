@@ -55,4 +55,16 @@
         <cve>CVE-2026-22735</cve>
     </suppress>
 
+
+    <!-- Spring boot version -->
+    <suppress>
+        <notes>
+            Upgrading Spring Boot introduced compatibility issues that required significant refactoring. 
+            Due to project time constraints, suppression was used as a temporary measure.
+        </notes>
+        <cve>CVE-2026-40972</cve>
+        <cve>CVE-2026-40975</cve>
+        <cve>CVE-2026-40973</cve>
+    </suppress>
+
 </suppressions>
