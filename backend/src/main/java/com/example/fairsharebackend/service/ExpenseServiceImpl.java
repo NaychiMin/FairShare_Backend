@@ -131,7 +131,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         expenseSplitRepository.saveAll(splits);
         savedExpense.setExpenseSplits(splits);
-        balanceService.updateBalancesForNewExpense(savedExpense);
+        balanceService.updateBalancesForNewExpense(savedExpense, false);
 
         updateExpenseSettlementStatus(savedExpense);
 
@@ -231,7 +231,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         // 4. Update Balances & Expense Status
         // Note: ensure balanceService handles the "delta" or resets properly
-        balanceService.updateBalancesForNewExpense(savedExpense);
+        balanceService.updateBalancesForNewExpense(savedExpense, true);
         updateExpenseSettlementStatus(savedExpense);
 
         logActivity(group, creator, savedExpense);
