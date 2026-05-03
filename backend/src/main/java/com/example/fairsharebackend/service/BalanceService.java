@@ -57,10 +57,15 @@ public class BalanceService {
         Optional<PairwiseBalance> existingBalance = 
             balanceRepository.findByGroupAndDebtorAndCreditor(group, debtor, creditor);
         
-        if (existingBalance.isPresent() && !ignorePreviousBalance) {
+        if (existingBalance.isPresent()) {
             // Debtor already owes creditor - modify it
             PairwiseBalance balance = existingBalance.get();
-            BigDecimal newAmount = balance.getAmount().add(amount);
+            BigDecimal newAmount;
+            if (ignorePreviousBalance){
+                newAmount = amount;
+            } else {
+                newAmount = balance.getAmount().add(amount);
+            }
             
             if (newAmount.compareTo(BigDecimal.ZERO) == 0) {
                 // Delete record if settled
