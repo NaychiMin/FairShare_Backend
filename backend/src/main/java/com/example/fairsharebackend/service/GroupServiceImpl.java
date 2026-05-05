@@ -21,6 +21,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.fairsharebackend.factory.GroupFactory;
 
 
 import java.time.LocalDateTime;
@@ -46,6 +47,7 @@ public class GroupServiceImpl implements GroupService {
     private final GroupInvitationRepository groupInvitationRepository;
     private final NotificationService notificationService;
     private final NotificationRepository notificationRepository;
+    private final GroupFactory groupFactory;
 
 
     private static final String STATUS_ACTIVE = "Active";
@@ -64,6 +66,7 @@ public class GroupServiceImpl implements GroupService {
             RoleRepository roleRepository,
             JwtUtil jwtUtil,
             BalanceService balanceService, GroupActivityRepository groupActivityRepository, PairwiseBalanceRepository pairwiseBalanceRepository, ExpenseRepository expenseRepository, SettlementRepository settlementRepository, GroupInvitationRepository groupInvitationRepository, NotificationService notificationService, NotificationRepository notificationRepository
+            , GroupFactory groupFactory
     ) {
         this.groupRepository = groupRepository;
         this.groupMapper = groupMapper;
@@ -79,36 +82,70 @@ public class GroupServiceImpl implements GroupService {
         this.groupInvitationRepository = groupInvitationRepository;
         this.notificationService = notificationService;
         this.notificationRepository = notificationRepository;
+        this.groupFactory = groupFactory;
     }
+
+//    @Override
+//    @Transactional
+//    public Group createGroup(GroupCreateRequestDto dto) {
+//        log.error("Create new group with name");
+//        try {
+//            Group group = this.groupMapper.toEntity(dto);
+//            //User user = userRepository.getByName(dto.getAdmin());
+//
+//            User user = userRepository.findByEmail(dto.getAdmin())
+//                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+//
+//            GroupMembership groupMembership = new GroupMembership();
+//            groupMembership.setGroup(group);
+//            groupMembership.setUser(user);
+//            groupMembership.setJoinedAt(LocalDateTime.now());
+//            groupMembership.setMembershipStatus(STATUS_ACTIVE);
+//            groupMembership.setRole(roleRepository.getByName(ROLE_GROUP_ADMIN));
+//            groupRepository.save(group);
+//            groupMembershipRepository.save(groupMembership);
+//            return group;
+//
+//        } catch (BadCredentialsException e) {
+//            log.error("Exception :: {}", e.getMessage());
+//
+//            throw e;
+//        } catch (Exception e) {
+//            log.error("Exception :: {}", e.getMessage());
+//
+//            throw new RuntimeException("Unable to register at this time. Please try again later.");
+//        }
+//    }
 
     @Override
     @Transactional
     public Group createGroup(GroupCreateRequestDto dto) {
-        log.error("Create new group with name");
-        try {
-            Group group = this.groupMapper.toEntity(dto);
-            //User user = userRepository.getByName(dto.getAdmin());
+        log.info("Creating new group with name: {}", dto.getGroupName());
 
+        try {
             User user = userRepository.findByEmail(dto.getAdmin())
                     .orElseThrow(() -> new RuntimeException("Admin user not found"));
 
-            GroupMembership groupMembership = new GroupMembership();
-            groupMembership.setGroup(group);
-            groupMembership.setUser(user);
-            groupMembership.setJoinedAt(LocalDateTime.now());
-            groupMembership.setMembershipStatus(STATUS_ACTIVE);
-            groupMembership.setRole(roleRepository.getByName(ROLE_GROUP_ADMIN));
+            Role adminRole = roleRepository.getByName(ROLE_GROUP_ADMIN);
+            if (adminRole == null) {
+                throw new RuntimeException("Missing role: GROUP_ADMIN");
+            }
+
+            Group group = groupFactory.createGroup(dto);
             groupRepository.save(group);
+
+            GroupMembership groupMembership =
+                    groupFactory.createAdminMembership(group, user, adminRole);
+
             groupMembershipRepository.save(groupMembership);
+
             return group;
 
         } catch (BadCredentialsException e) {
-            log.error("Exception :: {}", e.getMessage());
-
+            //log.error("Exception :: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Exception :: {}", e.getMessage());
-
+            //log.error("Exception :: {}", e.getMessage());
             throw new RuntimeException("Unable to register at this time. Please try again later.");
         }
     }
