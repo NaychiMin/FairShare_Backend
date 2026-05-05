@@ -4,6 +4,8 @@ import com.example.fairsharebackend.constant.BadgeRuleType;
 import com.example.fairsharebackend.constant.BadgeType;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.entity.dto.response.UserBadgeDto;
+import com.example.fairsharebackend.entity.event.ExpenseEvent;
+import com.example.fairsharebackend.entity.event.SettlementEvent;
 import com.example.fairsharebackend.mapper.UserBadgeMapper;
 import com.example.fairsharebackend.repository.BadgeRepository;
 import com.example.fairsharebackend.repository.UserBadgeRepository;
@@ -44,14 +46,14 @@ public class BadgeEngineImpl implements BadgeEngine {
 
     @Override
     @EventListener
-    public void handleExpenseCreated(Expense event) {
-        evaluate(event);
+    public void handleExpenseCreated(ExpenseEvent event) {
+        evaluate(event.getExpense());
     }
 
     @Override
     @EventListener
-    public void handleSettlementCreated(Settlement event) {
-        evaluate(event);
+    public void handleSettlementCreated(SettlementEvent event) {
+        evaluate(event.getSettlement());
     }
 
     public void evaluate(Settlement settlement) {

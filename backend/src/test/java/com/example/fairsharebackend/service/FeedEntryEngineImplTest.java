@@ -1,6 +1,7 @@
 package com.example.fairsharebackend.service;
 
 import com.example.fairsharebackend.entity.*;
+import com.example.fairsharebackend.entity.event.ExpenseEvent;
 import com.example.fairsharebackend.repository.*;
 import com.example.fairsharebackend.constant.GroupField;
 import com.example.fairsharebackend.entity.GroupFullySettledEvent;
@@ -46,7 +47,7 @@ class FeedEntryEngineImplTest {
     @DisplayName("Save feed entry when expense is created")
     void shouldSaveFeedEntry_whenExpenseCreated() {
 
-        engine.handleExpenseCreated(expense);
+        engine.handleExpenseCreated(new ExpenseEvent(expense));
 
         verify(repository).save(any(FeedEntry.class));
     }

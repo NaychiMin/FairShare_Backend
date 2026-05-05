@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,6 +36,8 @@ class SettlementServiceTest {
     @Mock private SettlementMapper mapper;
     @Mock private GroupActivityRepository activityRepository;
     @Mock private NotificationService notificationService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private SettlementService service;

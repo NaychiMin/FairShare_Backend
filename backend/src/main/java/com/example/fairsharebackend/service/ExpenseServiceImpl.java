@@ -3,6 +3,7 @@ package com.example.fairsharebackend.service;
 import com.example.fairsharebackend.entity.dto.request.ExpenseCreateRequestDto;
 import com.example.fairsharebackend.entity.dto.response.ExpenseResponseDto;
 import com.example.fairsharebackend.entity.*;
+import com.example.fairsharebackend.entity.event.ExpenseEvent;
 import com.example.fairsharebackend.exception.ResourceNotFoundException;
 import com.example.fairsharebackend.factory.SplitStrategyFactory;
 import com.example.fairsharebackend.mapper.ExpenseMapper;
@@ -137,7 +138,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         logActivity(group, creator, savedExpense);
 
-        eventPublisher.publishEvent(savedExpense);
+        eventPublisher.publishEvent(new ExpenseEvent(savedExpense));
 
         notifyDebtors(savedExpense, splits, paidBy, group);
 

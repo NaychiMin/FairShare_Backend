@@ -24,7 +24,8 @@ class SettlementTimingBadgeEvaluatorImplTest {
 
     @Mock private SettlementRepository settlementRepository;
     @Mock private UserBadgeRepository userBadgeRepository;
-    @Mock private PairwiseBalanceRepository balanceRepository;
+    @Mock private ExpenseRepository expenseRepository;
+
 
     @InjectMocks
     private SettlementTimingBadgeEvaluatorImpl evaluator;
@@ -58,13 +59,13 @@ class SettlementTimingBadgeEvaluatorImplTest {
 
         LocalDateTime now = LocalDateTime.of(2026, 1, 1, 12, 0);
 
-        PairwiseBalance balance = new PairwiseBalance();
-        balance.setLastUpdated(now.minusMinutes(2));
+        Expense expense = new Expense();
+        expense.setCreatedAt(now.minusMinutes(2));
 
-        when(balanceRepository
-                .findTopByGroup_GroupIdAndDebtor_UserIdOrderByLastUpdatedDesc(
-                        group.getGroupId(), user.getUserId()))
-                .thenReturn(Optional.of(balance));
+        when(expenseRepository
+                .findTopByGroup_GroupIdOrderByCreatedAtDesc(
+                        group.getGroupId()))
+                .thenReturn(Optional.of(expense));
 
         badge.setRuleConfig("{\"timingInMin\":5}");
 
@@ -83,9 +84,9 @@ class SettlementTimingBadgeEvaluatorImplTest {
     @DisplayName("Return false when no balance exists")
     void qualifies_shouldReturnFalse_whenNoBalance() {
 
-        when(balanceRepository
-                .findTopByGroup_GroupIdAndDebtor_UserIdOrderByLastUpdatedDesc(
-                        group.getGroupId(), user.getUserId()))
+        when(expenseRepository
+                .findTopByGroup_GroupIdOrderByCreatedAtDesc(
+                        group.getGroupId()))
                 .thenReturn(Optional.empty());
 
         BadgeEvaluationContext ctx = new BadgeEvaluationContext();
