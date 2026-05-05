@@ -4,9 +4,11 @@ import com.example.fairsharebackend.entity.dto.request.SettlementCreateRequestDt
 import com.example.fairsharebackend.entity.dto.request.SettlementEditRequestDto;
 import com.example.fairsharebackend.entity.dto.response.SettlementResponseDto;
 import com.example.fairsharebackend.entity.*;
+import com.example.fairsharebackend.entity.event.SettlementEvent;
 import com.example.fairsharebackend.exception.ResourceNotFoundException;
 import com.example.fairsharebackend.mapper.SettlementMapper;
 import com.example.fairsharebackend.repository.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class SettlementService {
     private final SettlementMapper settlementMapper;
     private final GroupActivityRepository groupActivityRepository;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String USER_NOT_FOUND = "User not found";
     private static final String GROUP_NOT_FOUND = "Group not found";
@@ -40,7 +43,7 @@ public class SettlementService {
             BalanceService balanceService,
             BadgeEngine badgeEngine,
             SettlementMapper settlementMapper,
-            GroupActivityRepository groupActivityRepository, NotificationService notificationService) {
+            GroupActivityRepository groupActivityRepository, NotificationService notificationService, ApplicationEventPublisher eventPublisher) {
         this.settlementRepository = settlementRepository;
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
@@ -50,6 +53,7 @@ public class SettlementService {
         this.settlementMapper = settlementMapper;
         this.groupActivityRepository = groupActivityRepository;
         this.notificationService = notificationService;
+        this.eventPublisher = eventPublisher;
     }
 
     // Create settlement in group
@@ -98,8 +102,8 @@ public class SettlementService {
         balanceService.updateBalancesForSettlement(savedSettlement);
         
         logSettlementActivity(group, creator, savedSettlement);
-        badgeEngine.evaluate(savedSettlement);
 
+        eventPublisher.publishEvent(new SettlementEvent(savedSettlement));
 
         notificationService.notifyUser(
                 receiver,

@@ -4,7 +4,7 @@ import com.example.fairsharebackend.constant.BadgeRuleType;
 import com.example.fairsharebackend.constant.BadgeScope;
 import com.example.fairsharebackend.entity.*;
 import com.example.fairsharebackend.exception.EvaluatorException;
-import com.example.fairsharebackend.repository.PairwiseBalanceRepository;
+import com.example.fairsharebackend.repository.ExpenseRepository;
 import com.example.fairsharebackend.repository.SettlementRepository;
 import com.example.fairsharebackend.repository.UserBadgeRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,16 +24,16 @@ public class SettlementTimingBadgeEvaluatorImpl implements BadgeEvaluator {
     private static final Logger log = LoggerFactory.getLogger(SettlementTimingBadgeEvaluatorImpl.class);
     private final SettlementRepository settlementRepository;
     private final UserBadgeRepository userBadgeRepository;
-    private final PairwiseBalanceRepository pairwiseBalanceRepository;
+    private final ExpenseRepository expenseRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     public SettlementTimingBadgeEvaluatorImpl(
             SettlementRepository settlementRepository,
             UserBadgeRepository userBadgeRepository,
-            PairwiseBalanceRepository pairwiseBalanceRepository
+            ExpenseRepository expenseRepository
     ) {
         this.settlementRepository = settlementRepository;
         this.userBadgeRepository = userBadgeRepository;
-        this.pairwiseBalanceRepository = pairwiseBalanceRepository;
+        this.expenseRepository = expenseRepository;
     }
 
     @Override
@@ -65,25 +65,25 @@ public class SettlementTimingBadgeEvaluatorImpl implements BadgeEvaluator {
 
         Group group = context.getGroup();
 
-        Optional<PairwiseBalance> latestBalance = pairwiseBalanceRepository
-                .findTopByGroup_GroupIdAndDebtor_UserIdOrderByLastUpdatedDesc(group.getGroupId(), context.getSettlement().getFromUser().getUserId());
+        Optional<Expense> latestBalance = expenseRepository
+                .findTopByGroup_GroupIdOrderByCreatedAtDesc(group.getGroupId());
         if (latestBalance.isEmpty()) {
-            log.info("No latest balance found for User {} from group {}", user.getName(), group.getGroupName());
+            log.info("No latest expense found for User {} from group {}", user.getName(), group.getGroupName());
             return false;
         }
 
-        LocalDateTime latestBalanceLastUpdate = latestBalance.get().getLastUpdated();
+        LocalDateTime latestExpenseLastUpdate = latestBalance.get().getCreatedAt();
         LocalDateTime settlementTime = settlement.getCreatedAt();
         Integer timingInMin = this.getBadgeTiming(badge.getRuleConfig());
 
         log.info("Benchmark: timingInMin {}", timingInMin);
-        log.info("Comparing: last balance last update {} VS settlement created at {}", latestBalanceLastUpdate, settlementTime);
+        log.info("Comparing: last expense created {} VS settlement created at {}", latestExpenseLastUpdate, settlementTime);
 
-        if (latestBalanceLastUpdate == null || settlementTime == null || timingInMin == null) {
+        if (latestExpenseLastUpdate == null || settlementTime == null || timingInMin == null) {
             return false;
         }
 
-        long diffInMinutes = ChronoUnit.MINUTES.between(latestBalanceLastUpdate, settlementTime);
+        long diffInMinutes = ChronoUnit.MINUTES.between(latestExpenseLastUpdate, settlementTime);
         log.info("Comparing: diffInMinutes {}", diffInMinutes);
         return diffInMinutes < timingInMin;
     }

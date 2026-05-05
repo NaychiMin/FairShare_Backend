@@ -3,6 +3,7 @@ package com.example.fairsharebackend.service;
 import com.example.fairsharebackend.constant.FeedEntryType;
 import com.example.fairsharebackend.constant.GroupField;
 import com.example.fairsharebackend.entity.*;
+import com.example.fairsharebackend.entity.event.ExpenseEvent;
 import com.example.fairsharebackend.repository.FeedEntryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +27,9 @@ public class FeedEntryEngineImpl implements FeedEntryEngine {
 
     @Override
     @EventListener
-    public void handleExpenseCreated(Expense event) {
+    public void handleExpenseCreated(ExpenseEvent event) {
         log.warn("handleExpenseCreated");
-        logExpense(event);
+        logExpense(event.getExpense());
     }
 
     @EventListener
